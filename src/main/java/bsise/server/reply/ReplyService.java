@@ -79,7 +79,7 @@ public class ReplyService {
         PageRequest pageable = PageRequest.of(0, size, Sort.by(Direction.DESC, "createdAt"));
         List<Reply> replies = replyRepository.findTopNRepliesByUserId(userId, pageable);
         return replies.stream()
-                .map(ReplyResponseDto::of)
+                .map(reply -> ReplyResponseDto.ofByUserId(reply, userId))
                 .toList();
     }
 
@@ -90,7 +90,7 @@ public class ReplyService {
         PageRequest pageable = PageRequest.of(0, size, Sort.by(Direction.DESC, "createdAt"));
         List<Reply> replies = replyRepository.findRepliesByLetterId(lastLetterId, pageable);
         return replies.stream()
-                .map(ReplyResponseDto::of)
+                .map(reply -> ReplyResponseDto.ofByUserId(reply, userId))
                 .toList();
     }
 

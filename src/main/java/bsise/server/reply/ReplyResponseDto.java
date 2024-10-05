@@ -19,6 +19,9 @@ public class ReplyResponseDto {
     @Schema(description = "저장된 답장의 식별자")
     private final UUID replyId;
 
+    @Schema(description = "유저의 UUID")
+    private final UUID userId;
+
     @Schema(description = "유저가 작성한 편지")
     private final String content;
 
@@ -32,6 +35,17 @@ public class ReplyResponseDto {
     public static ReplyResponseDto of(Reply reply) {
         return ReplyResponseDto.builder()
                 .replyId(reply.getId())
+                .userId(reply.getLetter().getUser().getId())
+                .content(reply.getLetter().getMessage())
+                .reply(TwoTypeMessage.fromReply(reply))
+                .createdAt(reply.getCreatedAt())
+                .build();
+    }
+
+    public static ReplyResponseDto ofByUserId(Reply reply, UUID userId) {
+        return ReplyResponseDto.builder()
+                .replyId(reply.getId())
+                .userId(userId)
                 .content(reply.getLetter().getMessage())
                 .reply(TwoTypeMessage.fromReply(reply))
                 .createdAt(reply.getCreatedAt())
