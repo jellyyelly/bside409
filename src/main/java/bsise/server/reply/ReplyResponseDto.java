@@ -1,6 +1,7 @@
 package bsise.server.reply;
 
 import bsise.server.clovar.TwoTypeMessage;
+import bsise.server.user.Preference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -25,6 +26,9 @@ public class ReplyResponseDto {
     @Schema(description = "유저가 작성한 편지")
     private final String content;
 
+    @Schema(description = "유저의 선호하는 답변 유형")
+    private final Preference preference;
+
     @Schema(description = "두 유형의 답장 배열")
     private final TwoTypeMessage reply;
 
@@ -37,6 +41,7 @@ public class ReplyResponseDto {
                 .replyId(reply.getId())
                 .userId(reply.getLetter().getUser().getId())
                 .content(reply.getLetter().getMessage())
+                .preference(reply.getLetter().getPreference())
                 .reply(TwoTypeMessage.fromReply(reply))
                 .createdAt(reply.getCreatedAt())
                 .build();
@@ -47,6 +52,7 @@ public class ReplyResponseDto {
                 .replyId(reply.getId())
                 .userId(userId)
                 .content(reply.getLetter().getMessage())
+                .preference(reply.getLetter().getPreference())
                 .reply(TwoTypeMessage.fromReply(reply))
                 .createdAt(reply.getCreatedAt())
                 .build();
