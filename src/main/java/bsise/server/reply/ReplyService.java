@@ -10,10 +10,12 @@ import bsise.server.letter.LetterResponseDto;
 import bsise.server.letter.LetterService;
 import bsise.server.user.UserRepository;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
@@ -83,15 +85,15 @@ public class ReplyService {
                 .toList();
     }
 
-    public List<ReplyResponseDto> findMyLetterAndReply(UUID userId, UUID lastLetterId, Integer size) {
+    public Page<ReplyResponseDto> findMyLetterAndReply(UUID userId, Pageable pageable) {
         validateUserId(userId);
-        size = correctSize(size);
 
-        PageRequest pageable = PageRequest.of(0, size, Sort.by(Direction.DESC, "createdAt"));
-        List<Reply> replies = replyRepository.findRepliesByLetterId(lastLetterId, pageable);
-        return replies.stream()
+        Page<Reply> replies = replyRepository.findRepliesByOrderByCreatedAt(pageable);
+        List<ReplyResponseDto> replyDto = replies.stream()
                 .map(reply -> ReplyResponseDto.ofByUserId(reply, userId))
                 .toList();
+
+        return new PageImpl<>(replyDto, pageable, replies.getTotalElements());
     }
 
     private void validateUserId(UUID userId) {

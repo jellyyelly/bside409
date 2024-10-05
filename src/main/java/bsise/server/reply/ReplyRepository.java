@@ -4,6 +4,7 @@ import bsise.server.letter.Letter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,5 @@ public interface ReplyRepository extends JpaRepository<Reply, UUID> {
     @Query("SELECT r FROM Reply r where r.letter.user.id = :userId ORDER BY r.createdAt DESC")
     List<Reply> findTopNRepliesByUserId(UUID userId, Pageable pageable);
 
-    @Query("SELECT r FROM Reply r WHERE r.letter.id > :letterId ORDER BY r.createdAt DESC")
-    List<Reply> findRepliesByLetterId(UUID letterId, Pageable pageable);
+    Page<Reply> findRepliesByOrderByCreatedAt(Pageable pageable);
 }

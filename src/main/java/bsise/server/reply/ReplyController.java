@@ -6,6 +6,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,17 +47,11 @@ public class ReplyController {
     @Operation(summary = "유저의 편지함 목록을 반환하는 API", description = "유저가 최근 작성한 편지와 답변들을 제공합니다.")
     @GetMapping(value = "/users/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public List<ReplyResponseDto> findMyLetters(
+    public Page<ReplyResponseDto> findMyLetters(
             @PathVariable("userId") String userId,
-            @RequestParam(name = "lastLetterId", required = false) String lastLetterId,
-            @Parameter(name = "size", description = "최대 10개 이내", example = "?size=10")
-            @RequestParam(name = "size", required = false) Integer size
+            @PageableDefault(size = 10, direction = Direction.DESC) Pageable pageable
     ) {
-        if (lastLetterId == null) {
-            return replyService.findMyLetterAndReply(UUID.fromString(userId), size);
-        } else {
-            return replyService.findMyLetterAndReply(UUID.fromString(userId), UUID.fromString(lastLetterId), size);
-        }
+        return replyService.findMyLetterAndReply(UUID.fromString(userId), pageable);
     }
 
 }
