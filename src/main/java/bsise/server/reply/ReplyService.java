@@ -88,7 +88,7 @@ public class ReplyService {
     public Page<ReplyResponseDto> findMyLetterAndReply(UUID userId, Pageable pageable) {
         validateUserId(userId);
 
-        Page<Reply> replies = replyRepository.findRepliesByOrderByCreatedAt(pageable);
+        Page<Reply> replies = replyRepository.findRepliesByOrderByCreatedAt(userId, pageable);
         List<ReplyResponseDto> replyDto = replies.stream()
                 .map(reply -> ReplyResponseDto.ofByUserId(reply, userId))
                 .toList();

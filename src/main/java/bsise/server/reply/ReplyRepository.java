@@ -21,5 +21,6 @@ public interface ReplyRepository extends JpaRepository<Reply, UUID> {
     @Query("SELECT r FROM Reply r where r.letter.user.id = :userId ORDER BY r.createdAt DESC")
     List<Reply> findTopNRepliesByUserId(UUID userId, Pageable pageable);
 
-    Page<Reply> findRepliesByOrderByCreatedAt(Pageable pageable);
+    @Query("SELECT r FROM Reply r where r.letter.user.id = :userId ORDER BY r.createdAt DESC")
+    Page<Reply> findRepliesByOrderByCreatedAt(UUID userId, Pageable pageable);
 }
