@@ -46,7 +46,7 @@ public class JwtValidatorFilter extends OncePerRequestFilter {
                 log.info("=== JWT IN HEADER: 최초 ===");
             }
         } catch (ExpiredJwtException e) {
-            if (refreshToken == null || jwtService.isValidRefreshToken(refreshToken)) {
+            if (refreshToken == null || !jwtService.isValidRefreshToken(refreshToken)) {
                 throw new BadCredentialsException("Invalid refresh token");
             }
 
