@@ -20,7 +20,7 @@ spring:
         in-tests: false
   data:
     redis:
-      host: localhost
+      host: bside-redis
       port: 6379
 logging:
   level:

@@ -11,4 +11,4 @@ COPY --from=build /home/gradle/src/build/libs/*SNAPSHOT.jar bside-backend.jar
 
 #EXPOSE 8080
 
-ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-Duser.timezone=Asia/Seoul", "-jar", "bside-backend.jar"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=dev", "-Duser.timezone=Asia/Seoul", "-jar", "bside-backend.jar"]

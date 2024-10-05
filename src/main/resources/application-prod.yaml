@@ -16,7 +16,7 @@ spring:
         highlight_sql: true
   data:
     redis:
-      host: localhost
+      host: bside-redis
       port: 6379
   docker:
     compose:
