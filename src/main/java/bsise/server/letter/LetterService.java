@@ -1,11 +1,6 @@
 package bsise.server.letter;
 
 import bsise.server.error.LetterNotFoundException;
-import bsise.server.error.RateLimitException;
-import bsise.server.error.UserNotFoundException;
-import bsise.server.limiter.RateLimitService;
-import bsise.server.user.domain.User;
-import bsise.server.user.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,23 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class LetterService {
 
     private final LetterRepository letterRepository;
-    private final UserRepository userRepository;
-    private final RateLimitService rateLimitService;
-
-    public LetterResponseDto saveLetter(LetterRequestDto letterDto) {
-        if (!rateLimitService.isRequestAllowed(letterDto.getUserId())) {
-            throw new RateLimitException("요청 제한 횟수 초과");
-        }
-        User user = userRepository.findById(UUID.fromString(letterDto.getUserId()))
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + letterDto.getUserId()));
-
-        Letter letter = letterDto.toLetterWithoutUser();
-        letter.setUser(user);
-
-        Letter savedLetter = letterRepository.save(letter);
-
-        return LetterResponseDto.fromLetter(savedLetter);
-    }
 
     // FIXME: presentation layer 에 절대 나가지 않도록 개선하기
     @Transactional(readOnly = true)

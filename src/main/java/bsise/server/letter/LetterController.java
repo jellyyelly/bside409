@@ -32,9 +32,7 @@ public class LetterController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ReplyResponseDto receiveLetter(@Valid @RequestBody LetterRequestDto letterRequestDto) {
-        LetterResponseDto letterResponse = letterService.saveLetter(letterRequestDto);
-
-        return replyService.makeAndSaveReply(letterResponse);
+        return replyService.makeAndSaveReply(letterRequestDto);
     }
 
     @Operation(summary = "편지 삭제 요청 API", description = "요청한 편지 ID에 해당하는 편지를 제거합니다.")
