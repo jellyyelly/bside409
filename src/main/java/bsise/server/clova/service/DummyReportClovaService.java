@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
  */
 @Profile("test")
 @Service
-public class DummyReportClavaService extends ClovaService {
+public class DummyReportClovaService extends ClovaService {
 
-    public DummyReportClavaService(ClovaFeignClient client) {
+    public DummyReportClovaService(ClovaFeignClient client) {
         super(client);
     }
 
@@ -31,7 +31,7 @@ public class DummyReportClavaService extends ClovaService {
 
     @Override
     public ClovaResponseDto sendDailyReportRequest(String message) {
-        int lettersCount = message.split(",").length;
+        int lettersCount = message.split("\n").length;
         return DummyDailyReportClovaResponseDto.createDummy(lettersCount);
     }
 

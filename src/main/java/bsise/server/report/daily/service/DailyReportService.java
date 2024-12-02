@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -104,13 +105,15 @@ public class DailyReportService {
     }
 
     private ClovaResponseDto requestClovaAnalysis(List<Letter> letters) {
+        AtomicInteger index = new AtomicInteger(1);
+
         String formattedMessages = letters.stream()
-                .map(Letter::getMessage)
-                .map(msg -> "\"" + msg + "\"")
-                .collect(Collectors.joining(", "));
+                .map(letter -> index.getAndIncrement() + ". \"" + letter.getMessage() + "\"")
+                .collect(Collectors.joining("\n"));
 
         return clovaService.sendDailyReportRequest(formattedMessages);
     }
+
 
     private DailyReport buildDailyReport(LocalDate targetDate, ClovaDailyAnalysisResult clovaDailyAnalysisResult) {
         return DailyReport.builder()

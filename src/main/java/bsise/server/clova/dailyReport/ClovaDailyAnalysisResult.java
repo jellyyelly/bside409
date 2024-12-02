@@ -21,6 +21,8 @@ public class ClovaDailyAnalysisResult {
     @Getter
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     public static class LetterAnalysis {
+        @JsonProperty(value = "seq")
+        private int seq;
 
         @JsonProperty(value = "coreEmotions")
         private List<String> coreEmotions;
