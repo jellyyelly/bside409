@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public class MessageExtractor {
 
-    private static final Pattern pattern = Pattern.compile("F.*:(.*).*?---.*?T.*:(.*)", Pattern.MULTILINE);
+    private static final Pattern pattern = Pattern.compile("F.*:\\s*(.*?)\\s*---\\s*T.*:\\s*(.*)", Pattern.MULTILINE);
     private static final int F_INDEX = 1;
     private static final int T_INDEX = 2;
 

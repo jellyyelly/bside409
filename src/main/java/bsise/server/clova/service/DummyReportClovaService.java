@@ -36,7 +36,8 @@ public class DummyReportClovaService extends ClovaService {
      */
     @Override
     public ClovaResponseDto sendDailyReportRequest(String message) {
-        int lettersCount = message.split(",").length;
+        int lettersCount = message.split(message.split("\n", 2)[0]).length - 1;
+
         return DummyDailyReportClovaResponseDto.createDummy(lettersCount);
     }
 
