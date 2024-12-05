@@ -75,7 +75,6 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0' // 쿼리 파라미터
 }
 
 dependencyManagement {

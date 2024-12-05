@@ -1,9 +1,10 @@
 package bsise.server.report.weekly.service;
 
-import bsise.server.clova.dto.ClovaResponseDto;
-import bsise.server.clova.service.ClovaService;
 import bsise.server.clova.dailyReport.ClovaDailyAnalysisResult;
 import bsise.server.clova.dailyReport.DailyReportExtractor;
+import bsise.server.clova.dto.ClovaResponseDto;
+import bsise.server.clova.service.ClovaService;
+import bsise.server.clova.weekly.ClovaWeeklyReportRequestDto;
 import bsise.server.error.DuplicationWeeklyReportException;
 import bsise.server.error.WeeklyReportNotFoundException;
 import bsise.server.letter.Letter;
@@ -14,7 +15,7 @@ import bsise.server.report.daily.domain.LetterAnalysis;
 import bsise.server.report.daily.repository.DailyReportRepository;
 import bsise.server.report.daily.repository.LetterAnalysisRepository;
 import bsise.server.report.weekly.domain.WeeklyReport;
-import bsise.server.report.weekly.dto.ClovaWeeklyReportRequestDto;
+import bsise.server.report.weekly.dto.WeeklyPublishedStaticsDto;
 import bsise.server.report.weekly.dto.WeeklyReportRequestDto;
 import bsise.server.report.weekly.dto.WeeklyReportResponseDto;
 import bsise.server.report.weekly.repository.WeeklyReportRepository;
@@ -70,12 +71,12 @@ public class WeeklyReportService {
                 .collect(Collectors.groupingBy(
                         letter -> letter.getCreatedAt().toLocalDate()));
 
-        // 한 날짜에 해당하는 여러 편지중에서 1개라도 dailyReport 가 있으면 해당 날짜의 모든 편지 제거
+        // 이미 일일 분석이 생성된 날짜는 제거
         latestLettersByDate.values().removeIf(
                 letters -> letters.stream().anyMatch(letter -> letter.getDailyReport() != null)
         );
 
-        // 날짜당 편지 3개로 제한
+        // 일일 분석을 생성하려는 편지들을 날짜당 3개로 제한
         Map<LocalDate, List<Letter>> latestThreeLettersByDate = latestLettersByDate.entrySet().stream()
                 .collect(Collectors.toMap(
                         Entry::getKey,
@@ -120,36 +121,27 @@ public class WeeklyReportService {
         //dailyReport 에서 설명 합치기
         String descriptions = dailyReports.stream()
                 .map(DailyReport::getDescription)
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.joining());
 
-        // dailyReport 에서 감정 합치기
-        String coreEmotions = dailyReports.stream()
-                .map(DailyReport::getCoreEmotion)
-                .map(CoreEmotion::name)
-                .collect(Collectors.joining(", "));
-
-        // TODO: DailyReportExtractor 에서 클로바 response 읽기 후 저장
         ClovaResponseDto clovaResponseDto = clovaService.sendWeeklyReportRequest(
-                ClovaWeeklyReportRequestDto.from(descriptions, coreEmotions));
-        // ----
+                ClovaWeeklyReportRequestDto.from(descriptions));
+        String resultMessage = clovaResponseDto.getResultMessage();
 
         WeeklyDataManager manager = new WeeklyDataManager(weeklyReportRequestDto.getStartDate());
-
-        // TODO: DailyReport 가져올 때, publishedCount도 같이 조회하면 좋을 거 같음 -> Projection 학습 후 적용해봄
-        int publishedCount = dailyReportRepository.findPublishedCount(oneWeekDates);
+        WeeklyPublishedStaticsDto staticsDto = dailyReportRepository.findPublishedStatics(oneWeekDates);
 
         WeeklyReport weeklyReport = WeeklyReport.builder()
                 .weekOfYear(manager.getWeekOfWeekBasedYear())
                 .startDate(manager.getMondayOfWeek())
                 .endDate(manager.getSundayOfWeek())
-                .cheerUp("위로한마디")
-                .publishedCount(publishedCount)
-//                .unpublishedCount()
+                .cheerUp(resultMessage)
+                .publishedCount(staticsDto.getPublishedCount())
+                .unpublishedCount(staticsDto.getUnPublishedCount())
                 .build();
         weeklyReportRepository.save(weeklyReport);
         dailyReports.forEach(dailyReport -> dailyReport.setWeeklyReport(weeklyReport));
 
-        return WeeklyReportResponseDto.from(weeklyReport, manager);
+        return WeeklyReportResponseDto.from(weeklyReport);
     }
 
     public WeeklyReportResponseDto getWeeklyReport(UUID userId, LocalDate startDate, LocalDate endDate) {

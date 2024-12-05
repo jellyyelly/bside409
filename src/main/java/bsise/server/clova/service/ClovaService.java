@@ -8,7 +8,7 @@ import bsise.server.clova.dto.ClovaResponseDto;
 import bsise.server.clova.dto.TwoTypeMessage;
 import bsise.server.clova.client.ClovaFeignClient;
 import bsise.server.clova.dailyReport.ClovaDailyReportRequestDto;
-import bsise.server.report.weekly.dto.ClovaWeeklyReportRequestDto;
+import bsise.server.clova.weekly.ClovaWeeklyReportRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;

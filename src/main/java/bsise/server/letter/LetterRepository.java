@@ -59,7 +59,7 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
             value = """
                 SELECT l
                 FROM Letter l
-                WHERE l.id = :userId AND
+                WHERE l.user.id = :userId AND
                       l.createdAt >= :start AND
                       l.createdAt < :end
                 ORDER BY l.createdAt DESC

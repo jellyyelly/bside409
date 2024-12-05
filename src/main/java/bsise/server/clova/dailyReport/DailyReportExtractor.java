@@ -34,8 +34,5 @@ public class DailyReportExtractor {
             throw new IllegalArgumentException("답변 형식이 잘못되었습니다. 답변받은 데이터: " + response.getResultMessage(), e);
         }
     }
-
-    // TODO: 주간 분석 결과 파싱 API 만들기
-//    public static
 }
 

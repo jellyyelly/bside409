@@ -33,37 +33,34 @@ public class WeeklyReportResponseDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private LocalDate endDate;
 
-    @Schema(description = "주간 분석에 사용된 편지 개수와 일기 개수")
-    private WeeklyFrequencyDto frequency;
+    @Schema(description = "주간 분석에 사용된 편지 개수")
+    private int published;
 
-    // TODO: 요일별 추이
+    @Schema(description = "주간 분석에 사용된 일기 개수")
+    private int unPublished;
 
     @Schema(description = "위로 한 마디")
     private String cheerUp;
 
-    public static WeeklyReportResponseDto from(WeeklyReport weeklyReport, WeeklyDataManager manager) {
+    public static WeeklyReportResponseDto from(WeeklyReport weeklyReport) {
+        LocalDate target = weeklyReport.getStartDate();
+
         return WeeklyReportResponseDto.builder()
                 .weekOfYear(weeklyReport.getWeekOfYear())
-                .week_name(manager.getMonthValue() + "월 " + manager.getWeekOfMonth() + "주차")
+                .week_name(getMonthValue(target) + "월 " + getWeekOfMonth(target) + "주차")
                 .startDate(weeklyReport.getStartDate())
                 .endDate(weeklyReport.getEndDate())
-                .frequency(WeeklyFrequencyDto.of(weeklyReport.getPublishedCount(), weeklyReport.getUnpublishedCount()))
-                // TODO: 요일별 추이
+                .published(weeklyReport.getPublishedCount())
+                .unPublished(weeklyReport.getUnpublishedCount())
                 .cheerUp(weeklyReport.getCheerUp())
                 .build();
     }
 
-    public static WeeklyReportResponseDto from(WeeklyReport weeklyReport) {
-        WeeklyDataManager manager = new WeeklyDataManager(weeklyReport.getStartDate());
+    private static int getMonthValue(LocalDate target) {
+        return new WeeklyDataManager(target).getMonthValue();
+    }
 
-        return WeeklyReportResponseDto.builder()
-                .weekOfYear(weeklyReport.getWeekOfYear())
-                .week_name(manager.getMonthValue() + "월 " + manager.getWeekOfMonth() + "주차")
-                .startDate(weeklyReport.getStartDate())
-                .endDate(weeklyReport.getEndDate())
-                .frequency(WeeklyFrequencyDto.of(weeklyReport.getPublishedCount(), weeklyReport.getUnpublishedCount()))
-                // TODO: 요일별 추이
-                .cheerUp(weeklyReport.getCheerUp())
-                .build();
+    private static int getWeekOfMonth(LocalDate target) {
+        return new WeeklyDataManager(target).getWeekOfMonth();
     }
 }

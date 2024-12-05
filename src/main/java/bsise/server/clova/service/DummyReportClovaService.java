@@ -3,7 +3,7 @@ package bsise.server.clova.service;
 import bsise.server.clova.dto.ClovaResponseDto;
 import bsise.server.clova.client.ClovaFeignClient;
 import bsise.server.clova.dailyReport.DummyDailyReportClovaResponseDto;
-import bsise.server.report.weekly.dto.ClovaWeeklyReportRequestDto;
+import bsise.server.clova.weekly.ClovaWeeklyReportRequestDto;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
