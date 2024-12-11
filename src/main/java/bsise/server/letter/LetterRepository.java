@@ -65,4 +65,6 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
                 ORDER BY l.createdAt DESC
             """)
     List<Letter> findByCreatedAtDesc(UUID userId, LocalDateTime start, LocalDateTime end);
+
+    boolean existsByUserIdAndCreatedAtBetween(UUID userId, LocalDateTime start, LocalDateTime end);
 }
