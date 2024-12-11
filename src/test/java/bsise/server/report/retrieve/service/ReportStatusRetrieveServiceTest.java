@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import bsise.server.auth.OAuth2Provider;
+import bsise.server.common.cache.CacheGroup;
 import bsise.server.letter.Letter;
 import bsise.server.letter.LetterRepository;
 import bsise.server.report.daily.domain.CoreEmotion;
@@ -17,6 +18,8 @@ import bsise.server.user.domain.Preference;
 import bsise.server.user.domain.Role;
 import bsise.server.user.domain.User;
 import bsise.server.user.repository.UserRepository;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import jakarta.transaction.Transactional;
 import java.lang.reflect.Field;
 import java.time.DayOfWeek;
@@ -35,6 +38,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -57,6 +62,9 @@ class ReportStatusRetrieveServiceTest {
 
     @Autowired
     private LetterRepository letterRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Transactional
     @Test
@@ -428,5 +436,29 @@ class ReportStatusRetrieveServiceTest {
                 Arguments.of(LocalDate.of(2025, 12, 31), 1, "2026년 1월 1주차"),
                 Arguments.of(LocalDate.of(2026, 1, 1), 1, "2026년 1월 1주차")
         );
+    }
+
+    @DisplayName("한 명의 유저가 같은 날에 데일리 리포트 상태 조회를 5번 호출하면 4번 캐시 히트된다")
+    @Test
+    void should_cache_state_when_called_multiple_times() throws Exception {
+        // given
+        User user = createTestUser();
+        LocalDate targetDate = LocalDate.of(2024, 11, 30);
+        createLetterByLocalDate(user, targetDate);
+
+        // when
+        for (int i = 0; i < 5; i++) {
+            reportStatusRetrieveService.findDailyReportStatus(user.getId(), targetDate, targetDate);
+        }
+
+        // then
+        CaffeineCache caffeineCache = (CaffeineCache) cacheManager.getCache(CacheGroup.DAILY_REPORT_STATUS.getCacheName());
+        Cache<Object, Object> cache = caffeineCache.getNativeCache();
+        CacheStats cacheStats = cache.stats();
+
+        assertThat(cache.estimatedSize()).isEqualTo(1L);
+        assertThat(cacheStats.missCount()).isEqualTo(1L);
+        assertThat(cacheStats.hitCount()).isEqualTo(4L);
+        assertThat(cacheStats.evictionCount()).isEqualTo(0L);
     }
 }

@@ -30,6 +30,8 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+
 
 @Slf4j
 @Service
@@ -112,6 +114,10 @@ public class DailyReportService {
         return DailyReportResponseDto.of(dailyReport, letterAnalyses);
     }
 
+    @Cacheable(
+            cacheNames = "dailyReport", cacheManager = "caffeineCacheManager",
+            key = "#userId + #targetDate.toString()", unless = "#result == null"
+    )
     public DailyReportResponseDto getDailyReport(String userId, LocalDate targetDate) {
         DailyReport dailyReport = dailyReportRepository.findByUserAndTargetDate(UUID.fromString(userId), targetDate)
                 .orElseThrow(

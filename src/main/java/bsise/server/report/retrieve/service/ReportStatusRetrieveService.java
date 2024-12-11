@@ -19,6 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,17 +37,23 @@ public class ReportStatusRetrieveService {
     /**
      * 유저의 ID(uuid)를 통해 일자 별 일일 분석 리포트 상태 조회
      *
-     * @param userId 유저의 아이디
+     * @param userId     유저의 아이디
      * @param targetDate 대상 날짜
-     * @param endDate 검색 범위 마지막 날짜
+     * @param endDate    검색 범위 마지막 날짜
      * @return 일자 별 일일 분석 리포트 상태 리스트
      */
-    public List<DailyReportStatusResponseDto> findDailyReportStatus(UUID userId, LocalDate targetDate, LocalDate endDate) {
+    @Cacheable(
+            cacheNames = "dailyReportStatus", cacheManager = "caffeineCacheManager",
+            key = "#userId.toString() + #targetDate.toString()", unless = "#result == null || #result.size() == 0"
+    )
+    public List<DailyReportStatusResponseDto> findDailyReportStatus(UUID userId, LocalDate targetDate,
+                                                                    LocalDate endDate) {
         // 타겟 날짜로부터 한 달 전 날짜
         LocalDate oneMonthAgo = targetDate.minusMonths(DEFAULT_PREVIOUS_RANGE);
 
         // 편지 리스트 조회
-        List<DailyReportDto> letters = letterRepository.findDailyReportIdByDateRange(userId, convertToMin(oneMonthAgo), convertToMax(endDate));
+        List<DailyReportDto> letters = letterRepository.findDailyReportIdByDateRange(userId, convertToMin(oneMonthAgo),
+                convertToMax(endDate));
 
         // LocalDate 로 변환 후 날짜 기준으로 그루핑
         Map<LocalDate, List<DailyReportDto>> lettersByDate = letters.stream()
@@ -66,17 +73,23 @@ public class ReportStatusRetrieveService {
     /**
      * 유저의 ID(uuid)를 통해 주간 별 주간 분석 리포트 상태 조회
      *
-     * @param userId 유저의 아이디
+     * @param userId     유저의 아이디
      * @param targetDate 대상 날짜
-     * @param endDate 검색 범위 마지막 날짜
+     * @param endDate    검색 범위 마지막 날짜
      * @return 주간 별 주간 분석 리포트 상태 리스트
      */
-    public List<WeeklyReportStatusResponseDto> findWeeklyReportStatus(UUID userId, LocalDate targetDate, LocalDate endDate) {
+    @Cacheable(
+            cacheNames = "weeklyReportStatus", cacheManager = "caffeineCacheManager",
+            key = "#userId.toString() + #targetDate.toString()", unless = "#result == null || #result.size() == 0"
+    )
+    public List<WeeklyReportStatusResponseDto> findWeeklyReportStatus(UUID userId, LocalDate targetDate,
+                                                                      LocalDate endDate) {
         // 타겟 날짜로부터 한 달 전 날짜
         LocalDate oneMonthAgo = targetDate.minusMonths(DEFAULT_PREVIOUS_RANGE);
 
         // 편지 리스트 조회
-        List<WeeklyReportDto> dailyReports = letterRepository.findWeeklyReportIdByDateRange(userId, convertToMin(oneMonthAgo), convertToMax(endDate));
+        List<WeeklyReportDto> dailyReports = letterRepository.findWeeklyReportIdByDateRange(userId,
+                convertToMin(oneMonthAgo), convertToMax(endDate));
 
         // 편지 작성일을 weekOfYear 로 변환 후 주간 기준으로 그루핑
         Map<Integer, List<WeeklyReportDto>> reportsByWeekOfYear = dailyReports.stream()
@@ -90,7 +103,8 @@ public class ReportStatusRetrieveService {
                     Integer weekOfYear = entry.getKey();
                     List<LocalDate> datesByWeek = entry.getValue();
                     return reportsByWeekOfYear.containsKey(weekOfYear)
-                            ? WeeklyReportStatusResponseDto.create(weekOfYear, datesByWeek, reportsByWeekOfYear.get(weekOfYear))
+                            ? WeeklyReportStatusResponseDto.create(weekOfYear, datesByWeek,
+                            reportsByWeekOfYear.get(weekOfYear))
                             : WeeklyReportStatusResponseDto.createFalseStatus(weekOfYear, datesByWeek);
                 })
                 .toList();

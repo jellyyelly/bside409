@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import bsise.server.auth.OAuth2Provider;
+import bsise.server.common.cache.CacheGroup;
 import bsise.server.letter.Letter;
 import bsise.server.letter.LetterRepository;
 import bsise.server.report.daily.domain.DailyReport;
@@ -14,6 +15,8 @@ import bsise.server.user.domain.Preference;
 import bsise.server.user.domain.Role;
 import bsise.server.user.domain.User;
 import bsise.server.user.repository.UserRepository;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +33,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +60,9 @@ class DailyReportServiceTest {
 
     @Autowired
     private LetterRepository letterRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @DisplayName("외부 API 연동을 대체하는 더미 응답으로 데일리 리포트를 생성할 수 있다.")
     @Test
@@ -186,6 +194,37 @@ class DailyReportServiceTest {
                 () -> assertThat(deadlockCount).isEqualTo(0L),
                 () -> assertThat(dailyReports).hasSize(1)
         );
+    }
+
+    @DisplayName("한 명의 유저가 같은 날에 데일리 리포트 조회를 5번 호출하면 4번 캐시 히트된다")
+    @Test
+    void should_cache_state_when_called_multiple_times() throws Exception {
+        // given
+        User user = createTestUser();
+        LocalDate targetDate = LocalDate.of(2024, 10, 1);
+        createLetterByLocalDate(user, targetDate);
+
+        CreateRequest dto = CreateRequest.builder()
+                .userId(user.getId().toString())
+                .date(targetDate)
+                .build();
+
+        dailyReportService.createDailyReport(dto); // 데일리 리포트 생성
+
+        // when
+        for (int i = 0; i < 5; i++) {
+            dailyReportService.getDailyReport(user.getId().toString(), targetDate);
+        }
+
+        // then
+        CaffeineCache caffeineCache = (CaffeineCache) cacheManager.getCache(CacheGroup.DAILY_REPORT.getCacheName());
+        Cache<Object, Object> cache = caffeineCache.getNativeCache();
+        CacheStats cacheStats = cache.stats();
+
+        assertThat(cache.estimatedSize()).isEqualTo(1L);
+        assertThat(cacheStats.missCount()).isEqualTo(1L);
+        assertThat(cacheStats.hitCount()).isEqualTo(4L);
+        assertThat(cacheStats.evictionCount()).isEqualTo(0L);
     }
 
     private User createTestUser() {
