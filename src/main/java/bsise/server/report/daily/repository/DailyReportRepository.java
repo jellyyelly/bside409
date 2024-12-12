@@ -1,17 +1,16 @@
 package bsise.server.report.daily.repository;
 
 import bsise.server.report.daily.domain.DailyReport;
-import bsise.server.report.monthly.dto.DailyReportMonthly;
 import bsise.server.report.weekly.dto.WeeklyPublishedStaticsDto;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> {
@@ -43,13 +42,4 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> 
             WHERE d.target_date IN :oneWeekDates
             """, nativeQuery = true)
     WeeklyPublishedStaticsDto findPublishedStatics(@Param("oneWeekDates") List<LocalDate> oneWeekDates);
-
-    @Query(value = """
-            SELECT
-                d.target_date as date, d.core_emotion as dailyCoreEmotion
-            FROM daily_report d
-            JOIN letter l ON d.daily_report_id = l.daily_report_id
-            WHERE l.user_id = :userId AND d.target_date BETWEEN :startOfMonth AND :endOfMonth
-            """, nativeQuery = true)
-    List<DailyReportMonthly> findMonthlyDailyReports(UUID userId, LocalDateTime startOfMonth, LocalDateTime endOfMonth);
 }

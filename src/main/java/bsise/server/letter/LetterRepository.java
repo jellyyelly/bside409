@@ -1,5 +1,6 @@
 package bsise.server.letter;
 
+import bsise.server.report.daily.dto.DailyReportStatus;
 import bsise.server.report.retrieve.dto.DailyReportDto;
 import bsise.server.report.retrieve.dto.WeeklyReportDto;
 import java.time.LocalDateTime;
@@ -40,6 +41,41 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
             nativeQuery = true
     )
     List<DailyReportDto> findDailyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query(
+            value = """
+                    WITH RECURSIVE date_range AS (
+                        SELECT CAST(:startDate AS DATE) AS report_date
+                        UNION ALL
+                        SELECT report_date + INTERVAL 1 DAY
+                        FROM date_range
+                        WHERE report_date + INTERVAL 1 DAY < CAST(:endDate AS DATE)
+                    )
+                    SELECT
+                        dr.report_date AS reportDate,
+                        COUNT(l.letter_id) AS letterCount,
+                        dr.daily_report_id AS dailyReportId,
+                        dr.weekly_report_id AS weeklyReportId,
+                        dr.core_emotion AS dailyCoreEmotion
+                    FROM
+                        date_range dr
+                    LEFT JOIN
+                        letter l ON DATE(l.created_at) = dr.report_date
+                        AND l.user_id = :userId
+                    LEFT JOIN
+                        daily_report dr ON l.daily_report_id = dr.daily_report_id
+                    LEFT JOIN
+                        weekly_report wr ON dr.weekly_report_id = wr.weekly_report_id
+                    GROUP BY
+                        dr.report_date,
+                        dr.daily_report_id,
+                        dr.weekly_report_id,
+                        dr.core_emotion
+                    ORDER BY
+                        dr.report_date
+                    """, nativeQuery = true
+    )
+    List<DailyReportStatus> findDailyReportStatusByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query(
             value = """
