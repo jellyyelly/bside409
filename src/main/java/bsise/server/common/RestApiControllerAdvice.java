@@ -1,18 +1,23 @@
 package bsise.server.common;
 
 import bsise.server.error.DormantUserLoginException;
+import bsise.server.error.DuplicateException;
 import bsise.server.error.NamedLockAcquisitionException;
 import bsise.server.error.RateLimitException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @Slf4j
 @RestControllerAdvice
@@ -52,6 +57,16 @@ public class RestApiControllerAdvice {
     @ExceptionHandler(NamedLockAcquisitionException.class)
     public ResponseEntity<?> handleNamedLockAcquisitionException(NamedLockAcquisitionException exception) {
         return createErrorResponse(exception, HttpStatus.CONFLICT, "error.namedLock:" + exception.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateException.class)
+    public ResponseEntity<?> handleDuplicateException(DuplicateException exception) {
+        return createErrorResponse(exception, HttpStatus.CONFLICT, "error.duplicate: " + exception.getMessage());
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        List<String> errorMessages = exception.getBindingResult().getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
+        return createErrorResponse(exception, HttpStatus.BAD_REQUEST, "error.args.invalid: " + errorMessages);
     }
 
     @ExceptionHandler(RuntimeException.class)
