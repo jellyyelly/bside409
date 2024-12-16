@@ -55,7 +55,7 @@ public class RestApiControllerAdvice {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRateLimitException(RuntimeException exception) {
+    public ResponseEntity<?> handleRuntimeException(RuntimeException exception) {
         return createErrorResponse(exception, HttpStatus.INTERNAL_SERVER_ERROR, "error.unknown");
     }
 
