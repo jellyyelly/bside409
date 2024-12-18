@@ -15,4 +15,14 @@ public class ErrorResponse {
     private final String title;
     private final String key;
     private final String message;
+
+    public static ErrorResponse of(ErrorType errorType, String message) {
+        return ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .title(errorType.getHttpStatus().getReasonPhrase())
+                .status(errorType.getHttpStatus().value())
+                .key(errorType.getMessageKey())
+                .message(message)
+                .build();
+    }
 }

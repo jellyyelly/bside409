@@ -11,7 +11,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
 import java.util.List;
 
 import static bsise.server.error.ErrorType.*;
@@ -60,28 +59,25 @@ public class RestApiControllerAdvice {
     public ResponseEntity<?> handleDuplicateException(DuplicateException exception) {
         return createErrorResponse(exception, ERROR_DUPLICATE, exception.getMessage());
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         List<String> errorMessages = exception.getBindingResult().getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).toList();
-        return createErrorResponse(exception, ERROR_ARGS_INVALID, errorMessages.toString());
+        return createErrorResponse(exception, ERROR_INVALID_BODY, String.join(", ", errorMessages));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleRuntimeException(RuntimeException exception) {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleUnhandledException(Exception exception) {
         return createErrorResponse(exception, ERROR_UNKNOWN);
     }
 
-    private ResponseEntity<?> createErrorResponse(Throwable throwable, ErrorType errorType, String... message) {
+    private ResponseEntity<?> createErrorResponse(Throwable throwable, ErrorType errorType) {
+        return createErrorResponse(throwable, errorType, null);
+    }
+
+    private ResponseEntity<?> createErrorResponse(Throwable throwable, ErrorType errorType, String message) {
         log.error("An error occurred: ", throwable);
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .timestamp(Instant.now())
-                .title(errorType.getHttpStatus().getReasonPhrase())
-                .status(errorType.getHttpStatus().value())
-                .key(errorType.getMessageKey())
-                .message(message != null && message.length > 0 && message[0] != null ? message[0] : null)
-                .build();
-
+        ErrorResponse errorResponse = ErrorResponse.of(errorType, message);
         return ResponseEntity.status(errorType.getHttpStatus()).body(errorResponse);
     }
 }

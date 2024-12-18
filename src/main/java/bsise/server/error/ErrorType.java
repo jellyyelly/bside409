@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 public enum ErrorType {
     // 400
     ERROR_ILLEGAL_ARGUMENT(HttpStatus.BAD_REQUEST, "error.illegal.argument"),
-    ERROR_ARGS_INVALID(HttpStatus.BAD_REQUEST, "error.args.invalid"),
+    ERROR_INVALID_BODY(HttpStatus.BAD_REQUEST, "error.invalid.body"),
 
     // 401
     ERROR_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "error.unauthorized"),
