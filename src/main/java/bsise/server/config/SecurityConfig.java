@@ -5,10 +5,8 @@ import static bsise.server.auth.jwt.JwtConstant.X_REFRESH_TOKEN;
 import bsise.server.auth.CookieEncodingFilter;
 import bsise.server.auth.OAuth2SuccessHandler;
 import bsise.server.auth.UpOAuth2UserService;
-import bsise.server.auth.jwt.JwtAuthenticationEntryPoint;
-import bsise.server.auth.jwt.JwtGeneratorFilter;
-import bsise.server.auth.jwt.JwtService;
-import bsise.server.auth.jwt.JwtValidatorFilter;
+import bsise.server.auth.jwt.*;
+
 import java.util.Arrays;
 import java.util.Collections;
 import lombok.AccessLevel;
@@ -67,6 +65,7 @@ public class SecurityConfig {
         // filter
         http.addFilterAfter(jwtGeneratorFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
         http.addFilterAfter(jwtValidatorFilter(jwtService), LogoutFilter.class);
+        http.addFilterAfter(jwtRefreshFilter(jwtService), JwtValidatorFilter.class);
         http.addFilterBefore(new CookieEncodingFilter("nickname", "--user-data"), UsernamePasswordAuthenticationFilter.class);
 
         // url pattern
@@ -111,6 +110,11 @@ public class SecurityConfig {
     @Bean
     public JwtValidatorFilter jwtValidatorFilter(JwtService jwtService) {
         return new JwtValidatorFilter(jwtService);
+    }
+
+    @Bean
+    public JwtRefreshFilter jwtRefreshFilter(JwtService jwtService) {
+        return new JwtRefreshFilter(jwtService);
     }
 
     @Bean

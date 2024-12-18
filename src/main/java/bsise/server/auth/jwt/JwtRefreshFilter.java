@@ -18,11 +18,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 import static bsise.server.auth.jwt.JwtConstant.EXPIRED_ACCESS_TOKEN;
+import static bsise.server.auth.jwt.JwtConstant.X_REFRESH_TOKEN;
 
 @Slf4j
 @Profile({"prod"})
 @RequiredArgsConstructor
-public class JwtValidatorFilter extends OncePerRequestFilter {
+public class JwtRefreshFilter extends OncePerRequestFilter {
 
     private static final String[] NOT_FILTERED_URLS = {
             "/login", "/oauth2*", "/error", "/swagger-*", "/v3/api-docs*", "/api-docs*", "/api/v1/users*"
@@ -32,31 +33,40 @@ public class JwtValidatorFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        log.info("=== jwt validator filter start ===");
-        String accessToken = jwtService.resolveAccessToken(request);
+        log.info("=== jwt refresh filter start ===");
+        String expiredAccessToken = (String) request.getAttribute(EXPIRED_ACCESS_TOKEN);
+        String refreshToken = jwtService.resolveRefreshToken(request);
 
-        log.info("=== accessToken: {}", accessToken);
+        log.info("=== refreshToken: {}", refreshToken);
 
-        // validate
-        if (accessToken == null) {
-            throw new BadCredentialsException("Invalid access token");
-        }
-
-        try {
-            if (jwtService.isValidAccessToken(accessToken)) {
-                // security context 저장
-                Authentication authentication = jwtService.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-                log.info("=== JWT IN HEADER: 최초 ===");
+        if (expiredAccessToken != null) {
+            if (refreshToken == null) {
+                throw new BadCredentialsException("Invalid refresh token");
             }
-        } catch (ExpiredJwtException e) {
-            log.info("=== JWT IN HEADER: 만료 ===");
-            request.setAttribute(EXPIRED_ACCESS_TOKEN, accessToken);
+
+            try {
+                if (jwtService.isValidRefreshToken(refreshToken)) {
+                    // security context 저장
+                    Authentication authentication = jwtService.getAuthentication(refreshToken);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    // 기존 accessToken 기반 새로운 accessToken 생성
+                    String reIssuedAccessToken = jwtService.reIssueAccessToken(refreshToken);
+                    String reIssuedRefreshToken = jwtService.reIssueRefreshToken(refreshToken);
+
+                    // 갱신된 accessToken, refreshToken 반환
+                    response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + reIssuedAccessToken);
+                    response.setHeader(X_REFRESH_TOKEN, "Bearer " + reIssuedRefreshToken);
+                    log.info("=== JWT token refreshed ===");
+                }
+            } catch (ExpiredJwtException e) {
+                log.info("=== JWT refresh token expired ===");
+                throw new BadCredentialsException("Invalid refresh token");
+            }
         }
 
         filterChain.doFilter(request, response);
-        log.info("===jwt validator filter end===");
+        log.info("===jwt refresh filter end===");
     }
 
     /**
