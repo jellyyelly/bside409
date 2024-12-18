@@ -8,10 +8,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "clova-service", url = "https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003")
+@FeignClient(
+        name = "clova-service",
+        url = "https://clovastudio.stream.ntruss.com",
+        fallbackFactory = ClovaServiceFallbackFactory.class
+)
 public interface ClovaFeignClient {
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value = "/testapp/v1/chat-completions/HCX-003",
+            consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE
+    )
     ClovaResponseDto sendToClova(
             @RequestHeader("X-NCP-CLOVASTUDIO-API-KEY") String apiKey,
             @RequestHeader("X-NCP-APIGW-API-KEY") String apigwKey,

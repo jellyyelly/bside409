@@ -7,6 +7,32 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          default:
+            connect-timeout: 1000
+            read-timeout: 10000
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        wait-duration-in-open-state: 30s
+        slow-call-rate-threshold: 80
+        slow-call-duration-threshold: 15s
+        register-health-indicator: true
+        record-failure-predicate: bsise.server.common.resilience.DefaultExceptionRecordFailurePredicate
+    instances:
+      default:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 20s
+        cancel-running-future: true
 server:
   error:
     whitelabel:
