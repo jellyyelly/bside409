@@ -60,15 +60,11 @@ public class LetterController {
             @RequestParam("q") String query,
             @RequestParam(value = "mode", defaultValue = "natural") String mode
     ) {
-        if (mode.equals("natural")) {
-            return letterService.fulltextSearchWithNaturalLanguageMode(UUID.fromString(userId), query);
-        }
-        if (mode.equals("boolean")) {
-            return letterService.fulltextSearchWithBooleanMode(UUID.fromString(userId), query);
-        }
-        if (mode.equals("expansion")) {
-            return letterService.fulltextSearchWithQueryExpansion(UUID.fromString(userId), query);
-        }
-        throw new IllegalArgumentException();
+        return switch (mode) {
+            case "natural" -> letterService.fulltextSearchWithNaturalLanguageMode(UUID.fromString(userId), query);
+            case "boolean" -> letterService.fulltextSearchWithBooleanMode(UUID.fromString(userId), query);
+            case "expansion" -> letterService.fulltextSearchWithQueryExpansion(UUID.fromString(userId), query);
+            default -> throw new IllegalArgumentException();
+        };
     }
 }
