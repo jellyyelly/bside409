@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,5 +51,24 @@ public class LetterController {
     @ResponseStatus(HttpStatus.OK)
     public List<LetterResponseDto> getTopNLettersForCommunity() {
         return letterService.getLatestLetters();
+    }
+
+    @GetMapping(value = "/search/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<FulltextSearchResult> searchLetters(
+            @PathVariable("userId") String userId,
+            @RequestParam("q") String query,
+            @RequestParam(value = "mode", defaultValue = "natural") String mode
+    ) {
+        if (mode.equals("natural")) {
+            return letterService.fulltextSearchWithNaturalLanguageMode(UUID.fromString(userId), query);
+        }
+        if (mode.equals("boolean")) {
+            return letterService.fulltextSearchWithBooleanMode(UUID.fromString(userId), query);
+        }
+        if (mode.equals("expansion")) {
+            return letterService.fulltextSearchWithQueryExpansion(UUID.fromString(userId), query);
+        }
+        throw new IllegalArgumentException();
     }
 }
