@@ -1,0 +1,2 @@
+ft_stopword_file=''
+ngram_token_size=2
