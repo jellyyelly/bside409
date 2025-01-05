@@ -94,4 +94,25 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
                 WHERE seq <= 3
             """, nativeQuery = true)
     List<Letter> findLettersForDailyReportCreation(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("""
+            SELECT l.id AS letterId, l.message AS message, l.createdAt AS createdAt
+            FROM Letter l
+            WHERE l.user.id = :userId AND match_against_natural_language_mode(l.message, :searchText)
+            """)
+    List<FulltextSearchResult> fulltextSearchWithNaturalLanguageMode(UUID userId, String searchText, Pageable pageable);
+
+    @Query("""
+            SELECT l.id AS letterId, l.message AS message, l.createdAt AS createdAt
+            FROM Letter l
+            WHERE l.user.id = :userId AND match_against_boolean_mode(l.message, :searchText)
+            """)
+    List<FulltextSearchResult> fulltextSearchWithBooleanMode(UUID userId, String searchText, Pageable pageable);
+
+    @Query("""
+            SELECT l.id AS letterId, l.message AS message, l.createdAt AS createdAt
+            FROM Letter l
+            WHERE l.user.id = :userId AND match_against_query_expansion(l.message, :searchText)
+            """)
+    List<FulltextSearchResult> fulltextSearchWithQueryExpansion(UUID userId, String searchText, Pageable pageable);
 }

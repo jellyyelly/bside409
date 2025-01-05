@@ -9,6 +9,9 @@ import bsise.server.user.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,5 +57,26 @@ public class LetterService {
         return top10Letters.stream()
                 .map(LetterResponseDto::fromLetter)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<FulltextSearchResult> fulltextSearchWithNaturalLanguageMode(UUID userId, String searchText) {
+        PageRequest page = PageRequest.of(0, 10, Sort.by(Direction.DESC, "createdAt"));
+
+        return letterRepository.fulltextSearchWithNaturalLanguageMode(userId, searchText, page);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FulltextSearchResult> fulltextSearchWithBooleanMode(UUID userId, String searchText) {
+        PageRequest page = PageRequest.of(0, 10, Sort.by(Direction.DESC, "createdAt"));
+
+        return letterRepository.fulltextSearchWithBooleanMode(userId, searchText, page);
+    }
+
+    @Transactional(readOnly = true)
+    public List<FulltextSearchResult> fulltextSearchWithQueryExpansion(UUID userId, String searchText) {
+        PageRequest page = PageRequest.of(0, 10, Sort.by(Direction.DESC, "createdAt"));
+
+        return letterRepository.fulltextSearchWithQueryExpansion(userId, searchText, page);
     }
 }

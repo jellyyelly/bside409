@@ -27,6 +27,7 @@ services:
     profiles: ["dev", "prod"]
     volumes:
       - data:/var/lib/mysql
+      - ./mysql/:/etc/mysql/conf.d/
     container_name: bside-rdb
     env_file:
       - .env

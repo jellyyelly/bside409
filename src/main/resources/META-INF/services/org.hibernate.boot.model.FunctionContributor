@@ -1,0 +1,3 @@
+bsise.server.common.hibernate.FulltextMatchNaturalLanguageModeFunctionContributor
+bsise.server.common.hibernate.FulltextMatchBooleanModeFunctionContributor
+bsise.server.common.hibernate.FulltextMatchQueryExpansionFunctionContributor
