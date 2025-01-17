@@ -5,12 +5,15 @@ import static site.radio.limiter.RateLimitPolicy.TTL;
 
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RateLimitService {
@@ -31,7 +34,7 @@ public class RateLimitService {
      * @param userId {@link java.util.UUID} 의 String 타입
      * @return 제한 횟수 초과 여부
      */
-    public boolean isRequestAllowed(String userId) {
+    public boolean preDeductUsage(String userId) {
         String key = getKey(userId);
 
         // 요청 횟수 증가
@@ -64,6 +67,20 @@ public class RateLimitService {
         Long ttl = getCurrentPolicy(TTL);
 
         return RateLimitPolicyResponseDto.of(limit, ttl);
+    }
+
+    @Transactional
+    @EventListener
+    public void rollback(RateLimitRollbackEvent event) {
+        // event status => ROLLBACK_PROCESSING
+        event.process();
+
+        String key = getKey(event.getUserId());
+        redisTemplate.opsForValue().decrement(key, 1);
+        log.info("사용 횟수가 롤백 되었습니다. userId: {}", event.getUserId());
+
+        // event status => ROLLBACK_COMPLETE
+        event.complete();
     }
 
     private String getKey(String userId) {
