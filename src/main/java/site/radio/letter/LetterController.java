@@ -1,7 +1,5 @@
 package site.radio.letter;
 
-import site.radio.reply.ReplyResponseDto;
-import site.radio.reply.ReplyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import site.radio.clova.letter.TwoTypeMessage;
+import site.radio.facade.LetterReplyFacadeService;
+import site.radio.reply.ReplyResponseDto;
 
 @Tag(name = "letter", description = "편지 API")
 @RestController
@@ -26,15 +27,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class LetterController {
 
     private final LetterService letterService;
-    private final ReplyService replyService;
+    private final LetterReplyFacadeService letterReplyFacadeService;
 
     @Operation(summary = "유저의 사연이 담긴 편지를 접수받는 API", description = "유저의 편지로부터 CLOVA를 이용해 답장을 제공합니다.")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ReplyResponseDto receiveLetter(@Valid @RequestBody LetterRequestDto letterRequestDto) {
-        LetterResponseDto letterResponse = letterService.saveLetter(letterRequestDto);
+        TwoTypeMessage twoTypeMessage = letterReplyFacadeService.sendLetterToClova(letterRequestDto);
 
-        return replyService.makeAndSaveReply(letterResponse);
+        return letterReplyFacadeService.responseReply(letterRequestDto, twoTypeMessage);
     }
 
     @Operation(summary = "편지 삭제 요청 API", description = "요청한 편지 ID에 해당하는 편지를 제거합니다.")
