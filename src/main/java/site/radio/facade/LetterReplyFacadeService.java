@@ -1,10 +1,7 @@
 package site.radio.facade;
 
 import feign.FeignException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,11 +11,13 @@ import site.radio.clova.dto.ClovaResponseDto;
 import site.radio.clova.letter.TwoTypeMessage;
 import site.radio.clova.service.ClovaService;
 import site.radio.error.RateLimitException;
-import site.radio.letter.LetterCreationEvent;
+import site.radio.letter.Letter;
 import site.radio.letter.LetterRequestDto;
+import site.radio.letter.LetterService;
 import site.radio.limiter.RateLimitRollbackEvent;
 import site.radio.limiter.RateLimitService;
 import site.radio.reply.ReplyResponseDto;
+import site.radio.reply.ReplyService;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,6 +26,8 @@ public class LetterReplyFacadeService {
 
     private final RateLimitService rateLimitService;
     private final ClovaService clovaService;
+    private final LetterService letterService;
+    private final ReplyService replyService;
     private final ApplicationEventPublisher eventPublisher;
 
     public TwoTypeMessage sendLetterToClova(LetterRequestDto letterRequestDto) {
@@ -49,25 +50,12 @@ public class LetterReplyFacadeService {
 
     @Transactional
     public ReplyResponseDto responseReply(LetterRequestDto letterRequestDto, TwoTypeMessage twoTypeMessage) {
-        CompletableFuture<ReplyResponseDto> future = new CompletableFuture<>();
-
-        // event status => PENDING
-        LetterCreationEvent event = LetterCreationEvent.createEvent(
-                letterRequestDto.getUserId(),
+        Letter letter = letterService.save(
+                UUID.fromString(letterRequestDto.getUserId()),
                 letterRequestDto.getMessage(),
                 letterRequestDto.getPreference(),
-                letterRequestDto.isPublished(),
-                twoTypeMessage,
-                future);
+                letterRequestDto.isPublished());
 
-        // 편지 생성 이벤트 발행
-        eventPublisher.publishEvent(event);
-
-        try {
-            // 편지부터 답장까지 생성이 완료되면 응답을 반환
-            return future.get(120, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException("Failed future for reply response", e);
-        }
+        return replyService.save(letter, twoTypeMessage);
     }
 }
