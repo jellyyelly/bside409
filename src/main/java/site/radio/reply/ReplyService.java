@@ -1,14 +1,5 @@
 package site.radio.reply;
 
-import site.radio.clova.dto.ClovaResponseDto;
-import site.radio.clova.letter.TwoTypeMessage;
-import site.radio.clova.service.ClovaService;
-import site.radio.error.LetterNotFoundException;
-import site.radio.error.UserNotFoundException;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterResponseDto;
-import site.radio.letter.LetterService;
-import site.radio.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Year;
@@ -23,6 +14,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.radio.clova.dto.ClovaResponseDto;
+import site.radio.clova.letter.TwoTypeMessage;
+import site.radio.clova.service.ClovaService;
+import site.radio.error.LetterNotFoundException;
+import site.radio.error.UserNotFoundException;
+import site.radio.letter.Letter;
+import site.radio.letter.LetterResponseDto;
+import site.radio.letter.LetterService;
+import site.radio.user.repository.UserRepository;
 
 @Service
 @Transactional
@@ -57,6 +57,18 @@ public class ReplyService {
                 .letter(letter)
                 .messageForF(twoTypeMessage.getMessageForF())
                 .messageForT(twoTypeMessage.getMessageForT())
+                .build();
+
+        Reply savedReply = replyRepository.save(reply);
+
+        return ReplyResponseDto.of(savedReply);
+    }
+
+    public ReplyResponseDto save(Letter letter, TwoTypeMessage twoTypeMessage) {
+        Reply reply = Reply.builder()
+                .letter(letter)
+                .messageForT(twoTypeMessage.getMessageForT())
+                .messageForF(twoTypeMessage.getMessageForF())
                 .build();
 
         Reply savedReply = replyRepository.save(reply);
