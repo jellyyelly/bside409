@@ -6,6 +6,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,6 +24,7 @@ public enum ExceptionType {
     // 400
     ILLEGAL_ARGUMENT_EXCEPTION(BAD_REQUEST, "error.illegal.argument", IllegalArgumentException.class),
     ARGS_INVALID_EXCEPTION(BAD_REQUEST, "error.args.invalid", MethodArgumentNotValidException.class),
+    EXTERNAL_API_CLIENT_EXCEPTION(BAD_REQUEST, "error.externalApi.client", ExternalApiClientException.class),
 
     // 401
     UNAUTHORIZED_EXCEPTION(UNAUTHORIZED, "error.unauthorized", BadCredentialsException.class),
@@ -41,9 +43,11 @@ public enum ExceptionType {
     // 500
     ILLEGAL_STATE_EXCEPTION(INTERNAL_SERVER_ERROR, "error.illegal.state", IllegalStateException.class),
     CALL_NOT_PERMITTED_EXCEPTION(INTERNAL_SERVER_ERROR, "error.call.notPermitted", CallNotPermittedException.class),
-    NO_FALLBACK_AVAILABLE_EXCEPTION(INTERNAL_SERVER_ERROR, "error.noFallbackAvailable",
-            NoFallbackAvailableException.class),
-    UNHANDLED_EXCEPTION(INTERNAL_SERVER_ERROR, "error.unhandled", Exception.class);   // default
+    NO_FALLBACK_AVAILABLE_EXCEPTION(INTERNAL_SERVER_ERROR, "error.noFallbackAvailable", NoFallbackAvailableException.class),
+    UNHANDLED_EXCEPTION(INTERNAL_SERVER_ERROR, "error.unhandled", Exception.class),   // default
+
+    // 503
+    EXTERNAL_API_SERVER_EXCEPTION(SERVICE_UNAVAILABLE, "error.externalApi.server", ExternalApiServerException.class);
 
     private final HttpStatus httpStatus;
     private final String messageKey;

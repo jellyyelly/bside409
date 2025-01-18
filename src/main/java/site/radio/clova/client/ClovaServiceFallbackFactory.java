@@ -12,6 +12,6 @@ public class ClovaServiceFallbackFactory implements FallbackFactory<ClovaFeignCl
     public ClovaFeignClient create(Throwable cause) {
         log.error("clova service fallback: ", cause);
         
-        return new ClovaClientWithFallback();
+        return new ClovaClientWithFallback(cause);
     }
 }

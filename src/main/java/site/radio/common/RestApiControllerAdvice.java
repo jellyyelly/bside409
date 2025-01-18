@@ -16,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import site.radio.error.CustomErrorResponse;
 import site.radio.error.DormantUserLoginException;
 import site.radio.error.ExceptionType;
+import site.radio.error.ExternalApiFallbackException;
 import site.radio.error.ValidationErrorResponse;
 import site.radio.error.ValidationProblemDetails;
 
@@ -25,11 +26,13 @@ public class RestApiControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleExceptions(Exception exception) {
+        log.error("An error occurred: ", exception);
         return createErrorResponse(exception);
     }
 
     @ExceptionHandler(DormantUserLoginException.class)
     public ResponseEntity<?> handleDormantUserLoginError(DormantUserLoginException exception) {
+        log.error("An error occurred: ", exception);
         return createErrorResponse(exception, exception.getMessage());
     }
 
@@ -37,6 +40,13 @@ public class RestApiControllerAdvice extends ResponseEntityExceptionHandler {
     public ResponseEntity<?> handleNoFallbackAvailableException(HttpServletRequest request,
                                                                 NoFallbackAvailableException exception) {
         log.warn("error occurred uri: {}, exception: ", request.getRequestURI(), exception.getCause());
+        return createErrorResponse(exception);
+    }
+
+    @ExceptionHandler(ExternalApiFallbackException.class)
+    public ResponseEntity<?> handleExternalApiFallbackException(HttpServletRequest request,
+                                                                ExternalApiFallbackException exception) {
+        log.error("error occurred uri: {}, exception: ", request.getRequestURI(), exception);
         return createErrorResponse(exception);
     }
 
@@ -71,8 +81,6 @@ public class RestApiControllerAdvice extends ResponseEntityExceptionHandler {
 
     private ResponseEntity<?> createErrorResponse(Exception exception, @Nullable String customMessage) {
         ExceptionType exceptionType = ExceptionType.from(exception);
-
-        log.error("An error occurred: {}", exceptionType.getException());
 
         // 메시지가 제공되면 사용, 없으면 기본 메시지로 처리
         String message = (customMessage != null) ? customMessage : exception.getMessage();
