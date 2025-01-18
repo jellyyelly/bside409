@@ -35,12 +35,10 @@ logging:
             bind: trace
 
 clova:
-  api:
-    key: none
-  apigw:
-    key: none
-  request:
-    id: none
+  secret:
+    api-key: none
+    apigw-key: none
+    request-id: none
 security:
   jwt:
     token:
