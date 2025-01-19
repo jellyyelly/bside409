@@ -1,6 +1,5 @@
 package site.radio.clova.dto;
 
-import java.util.Collections;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -71,39 +70,5 @@ public class ClovaResponseDto {
 
     public String getResultMessage() {
         return result.message.getContent();
-    }
-
-    public static ClovaResponseDto defaultFallbackResponse() {
-        return ClovaResponseDto.builder()
-                .status(defaultFallbackStatus())
-                .result(defaultFallbackResult())
-                .build();
-    }
-
-    private static StatusDto defaultFallbackStatus() {
-        return StatusDto.builder()
-                .code(FALLBACK_STRING)
-                .message(FALLBACK_STRING)
-                .build();
-    }
-
-    private static ResultDto defaultFallbackResult() {
-        return ResultDto.builder()
-                .message(ClovaMessageFormat.of(ClovaRole.ASSISTANT, FALLBACK_STRING))
-                .inputLength(0)
-                .outputLength(0)
-                .stopReason(FALLBACK_STRING)
-                .seed(0)
-                .aiFilter(Collections.singletonList(defaultFallbackAiFilterDto()))
-                .build();
-    }
-
-    private static AiFilterDto defaultFallbackAiFilterDto() {
-        return AiFilterDto.builder()
-                .groupName(FALLBACK_STRING)
-                .name(FALLBACK_STRING)
-                .score(FALLBACK_STRING)
-                .result(FALLBACK_STRING)
-                .build();
     }
 }

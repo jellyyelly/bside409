@@ -1,7 +1,11 @@
 package site.radio.error;
 
-public class ExternalApiServerException extends ExternalApiFallbackException {
-    public ExternalApiServerException(String message) {
-        super(message);
+import feign.FeignException;
+import feign.Response;
+
+public class ExternalApiServerException extends FeignException.FeignServerException {
+
+    public ExternalApiServerException(int status, String message, Response response, byte[] body) {
+        super(status, message, response.request(), body, response.headers());
     }
 }

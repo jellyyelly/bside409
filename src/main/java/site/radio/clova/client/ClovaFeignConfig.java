@@ -28,10 +28,10 @@ public class ClovaFeignConfig implements ErrorDecoder {
 
         if (400 <= statusCode && statusCode < 500) {
             log.error("[Status: {}] UpUpRadio 서버 --> 클로바 서버 호출 실패 [Body: {}]", statusCode, stringBody);
-            return new ExternalApiClientException("잘못된 클라이언트 요청으로 Clova 서버 호출에 실패했습니다.");
+            return new ExternalApiClientException(statusCode, "잘못된 클라이언트 요청으로 Clova 서버 호출에 실패했습니다.", response, stringBody.getBytes());
         } else if (500 >= statusCode) {
             log.error("[Status: {}] 클로바 서버 오류 [Body: {}]", statusCode, stringBody);
-            return new ExternalApiServerException("Clova 서버 장애로 인해 요청을 처리할 수 없습니다.");
+            return new ExternalApiServerException(statusCode, "Clova 서버 장애로 인해 요청을 처리할 수 없습니다.", response, stringBody.getBytes());
         }
         return errorDecoder.decode(methodKey, response);
     }

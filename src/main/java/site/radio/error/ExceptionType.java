@@ -44,6 +44,7 @@ public enum ExceptionType {
     ILLEGAL_STATE_EXCEPTION(INTERNAL_SERVER_ERROR, "error.illegal.state", IllegalStateException.class),
     CALL_NOT_PERMITTED_EXCEPTION(INTERNAL_SERVER_ERROR, "error.call.notPermitted", CallNotPermittedException.class),
     NO_FALLBACK_AVAILABLE_EXCEPTION(INTERNAL_SERVER_ERROR, "error.noFallbackAvailable", NoFallbackAvailableException.class),
+    EXTERNAL_API_UNHANDLED_EXCEPTION(INTERNAL_SERVER_ERROR, "error.externalApi.unhandled", ExternalApiUnhandledException.class),
     UNHANDLED_EXCEPTION(INTERNAL_SERVER_ERROR, "error.unhandled", Exception.class),   // default
 
     // 503

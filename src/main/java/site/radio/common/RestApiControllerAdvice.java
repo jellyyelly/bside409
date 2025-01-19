@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import site.radio.error.CustomErrorResponse;
 import site.radio.error.DormantUserLoginException;
 import site.radio.error.ExceptionType;
-import site.radio.error.ExternalApiFallbackException;
+import site.radio.error.ExternalApiUnhandledException;
 import site.radio.error.ValidationErrorResponse;
 import site.radio.error.ValidationProblemDetails;
 
@@ -43,10 +43,10 @@ public class RestApiControllerAdvice extends ResponseEntityExceptionHandler {
         return createErrorResponse(exception);
     }
 
-    @ExceptionHandler(ExternalApiFallbackException.class)
-    public ResponseEntity<?> handleExternalApiFallbackException(HttpServletRequest request,
-                                                                ExternalApiFallbackException exception) {
-        log.error("error occurred uri: {}, exception: ", request.getRequestURI(), exception);
+    @ExceptionHandler(ExternalApiUnhandledException.class)
+    public ResponseEntity<?> handleExternalApiUnhandledException(HttpServletRequest request,
+                                                                 ExternalApiUnhandledException exception) {
+        log.error("error occurred uri: {}, exception: ", request.getRequestURI(), exception.getCause());
         return createErrorResponse(exception);
     }
 
