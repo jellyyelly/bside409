@@ -1,5 +1,11 @@
 package site.radio.letter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import site.radio.error.LetterNotFoundException;
 import site.radio.error.RateLimitException;
 import site.radio.error.UserNotFoundException;
@@ -54,5 +60,32 @@ public class LetterService {
         return top10Letters.stream()
                 .map(LetterResponseDto::fromLetter)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<LocalDate, List<Letter>> findLettersForDailyReport(UUID userId, LocalDate startDate, LocalDate endDate) {
+        // 주간분석을 요청한 기간 동안 사용자가 작성한 편지들 찾기
+        List<Letter> userLettersByLatest = letterRepository.findByCreatedAtDesc(userId,
+                startDate.atStartOfDay(),
+                LocalDateTime.of(endDate, LocalTime.MAX));
+
+        // 날짜별로 편지들을 3개씩 묶기
+        Map<LocalDate, List<Letter>> latestLettersByDate = userLettersByLatest.stream()
+                .collect(Collectors.groupingBy(
+                        letter -> letter.getCreatedAt().toLocalDate()));
+
+        // 이미 일일 분석이 생성된 날짜는 제거
+        latestLettersByDate.values().removeIf(
+                letters -> letters.stream().anyMatch(letter -> letter.getDailyReport() != null)
+        );
+
+        // 일일 분석을 생성하려는 편지들을 날짜당 3개로 제한
+        return latestLettersByDate.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Entry::getKey,
+                        entry -> entry.getValue().stream()
+                                .limit(3)
+                                .collect(Collectors.toList())
+                ));
     }
 }

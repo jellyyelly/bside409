@@ -1,5 +1,6 @@
 package site.radio.clova.service;
 
+import java.util.concurrent.Executor;
 import site.radio.clova.client.ClovaFeignClient;
 import site.radio.clova.dailyReport.DummyDailyReportClovaResponseDto;
 import site.radio.clova.dto.ClovaResponseDto;
@@ -16,8 +17,8 @@ import org.springframework.stereotype.Service;
 @EnableConfigurationProperties(ClovaKeyProperties.class)
 public class DummyReportClovaService extends ClovaService {
 
-    public DummyReportClovaService(ClovaKeyProperties properties, ClovaFeignClient client) {
-        super(properties, client);
+    public DummyReportClovaService(ClovaKeyProperties properties, Executor clovaExecutor, ClovaFeignClient client) {
+        super(properties, clovaExecutor, client);
     }
 
     /**

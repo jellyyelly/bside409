@@ -4,22 +4,18 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import site.radio.clova.dto.ClovaResponseDto;
-import site.radio.clova.service.ClovaService;
-import site.radio.clova.weekly.ClovaWeeklyReportRequestDto;
 import site.radio.error.DailyReportNotFoundException;
 import site.radio.error.WeeklyReportAlreadyExistsException;
 import site.radio.error.WeeklyReportNotFoundException;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.dto.DailyReportStaticsDto;
 import site.radio.report.daily.dto.DailyStaticsOneWeekResponseDto;
 import site.radio.report.daily.repository.DailyReportRepository;
-import site.radio.report.daily.service.DailyReportService;
 import site.radio.report.weekly.domain.WeeklyReport;
 import site.radio.report.weekly.dto.WeeklyReportResponseDto;
 import site.radio.report.weekly.repository.WeeklyReportRepository;
@@ -31,50 +27,58 @@ import site.radio.report.weekly.repository.WeeklyReportRepository;
 public class WeeklyReportService {
 
     private final DailyReportRepository dailyReportRepository;
-    private final ClovaService clovaService;
     private final WeeklyReportRepository weeklyReportRepository;
-    private final DailyReportService dailyReportService;
 
     /**
      * 분석 날짜, 작성빈도, 요일 ⛧ 감정 변화 추이, 위로 메세지, + 데일리의 각 편지 대표 감정 일요일 자정(00:00)을 넘으면 주간 분석 요청 버튼 활성화 및 주간 분석 요청 가능
      */
-    public WeeklyReportResponseDto createWeeklyReport(UUID userId, LocalDate startDate) {
-        // 주간 분석 생성할 수 있는지 검증
-        if (weeklyReportRepository.fetchCountBy(userId, startDate, startDate.plusDays(6)).isPresent()) {
-            throw new WeeklyReportAlreadyExistsException("주간 분석이 이미 존재합니다");
-        }
+    public WeeklyReportResponseDto createWeeklyReport(UUID userId, List<LocalDate> oneWeekDates, String resultMessage) {
+        List<DailyReport> dailyReports = dailyReportRepository.findByTargetDateIn(userId, oneWeekDates);
+        DailyReportStaticsDto dto = dailyReportRepository.findStaticsBy(userId, oneWeekDates);
 
-        // 1주일 동안의 일일 분석 생성
-        dailyReportService.createDailyReportsBy(userId, startDate, startDate.plusDays(6));
+        int startDateIndex = 0;
+        WeeklyDataManager manager = new WeeklyDataManager(oneWeekDates.get(startDateIndex)); // TODO: util class 로 리팩토링 필요
+        WeeklyReport weeklyReport = WeeklyReport.builder()
+                .weekOfYear(manager.getWeekOfWeekBasedYear())
+                .startDate(manager.getMondayOfWeek())
+                .endDate(manager.getSundayOfWeek())
+                .cheerUp(resultMessage)
+                .publishedCount(dto.getPublishedCount())
+                .unpublishedCount(dto.getUnPublishedCount())
+                .build();
+        weeklyReportRepository.save(weeklyReport);
+        dailyReports.forEach(dailyReport -> dailyReport.setWeeklyReport(weeklyReport));
 
-        // startDate 로 부터 1주일 날짜 구하기
-        DailyStaticsOneWeekResponseDto dailyStaticsDto = dailyReportService.findDailyStaticsInOneWeek(userId,
-                createOneWeek(startDate));
+        List<CoreEmotion> coreEmotions = dailyReports.stream()
+                .map(DailyReport::getCoreEmotion)
+                .toList();
 
-        // 1주일에 해당하는 일일 분석들 찾기
-        List<DailyReport> dailyReports = dailyStaticsDto.getDailyReports();
+        return WeeklyReportResponseDto.from(weeklyReport, coreEmotions);
+    }
 
-        //dailyReport 에서 설명 합치기
-        String descriptions = dailyReports.stream()
-                .map(DailyReport::getDescription)
-                .collect(Collectors.joining());
+    public WeeklyReportResponseDto createWeeklyReportV2(DailyStaticsOneWeekResponseDto dailyStaticsOneWeekDto, String resultMessage, LocalDate startDate) {
+        DailyReportStaticsDto staticsDto = dailyStaticsOneWeekDto.getStaticsDto();
 
-        // 주간 분석에 필요한 위로 한마디 요청
-        ClovaResponseDto clovaResponseDto = clovaService.sendWeeklyReportRequest(
-                ClovaWeeklyReportRequestDto.from(descriptions));
-        String resultMessage = clovaResponseDto.getResultMessage();
-
+        // 주간 리포트 생성
         WeeklyDataManager manager = new WeeklyDataManager(startDate); // TODO: util class 로 리팩토링 필요
         WeeklyReport weeklyReport = WeeklyReport.builder()
                 .weekOfYear(manager.getWeekOfWeekBasedYear())
                 .startDate(manager.getMondayOfWeek())
                 .endDate(manager.getSundayOfWeek())
                 .cheerUp(resultMessage)
-                .publishedCount(dailyStaticsDto.getStaticsDto().getPublishedCount())
-                .unpublishedCount(dailyStaticsDto.getStaticsDto().getUnPublishedCount())
+                .publishedCount(staticsDto.getPublishedCount())
+                .unpublishedCount(staticsDto.getUnPublishedCount())
                 .build();
         weeklyReportRepository.save(weeklyReport);
-        dailyReports.forEach(dailyReport -> dailyReport.setWeeklyReport(weeklyReport));
+
+        // DailyReport 는 준영속 상태
+        List<DailyReport> dailyReports = dailyStaticsOneWeekDto.getDailyReports();
+        List<UUID> dailyReportIds = dailyReports.stream()
+                .map(DailyReport::getId)
+                .collect(Collectors.toList());
+
+        // UPDATE 쿼리
+        dailyReportRepository.updateWeeklyReportId(weeklyReport, dailyReportIds);
 
         List<CoreEmotion> coreEmotions = dailyReports.stream()
                 .map(DailyReport::getCoreEmotion)
@@ -104,9 +108,11 @@ public class WeeklyReportService {
         return WeeklyReportResponseDto.from(weeklyReport, coreEmotions);
     }
 
-    private List<LocalDate> createOneWeek(LocalDate startDate) {
-        return IntStream.range(0, 7)
-                .mapToObj(startDate::plusDays)
-                .toList();
+    @Transactional(readOnly = true)
+    public void vaildateWeeklyReportBy(UUID userId, LocalDate startDate) {
+        // 주간 분석 생성할 수 있는지 검증
+        if (weeklyReportRepository.fetchCountBy(userId, startDate, startDate.plusDays(6)).isPresent()) {
+            throw new WeeklyReportAlreadyExistsException("주간 분석이 이미 존재합니다");
+        }
     }
 }

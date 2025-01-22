@@ -3,16 +3,16 @@ spring:
     activate:
       on-profile: test
   datasource:
-    url: jdbc:tc:mysql:8.0.39:///test_db?useSSL=false&allowPublicKeyRetrieval=true #?TC_INITSCRIPT=file:src/test/resources/scheme.sql
-    username: test
-    password: test1234
-    hikari:
-      maximum-pool-size: 40
+#    url: jdbc:tc:mysql:8.0.39:///test_db?useSSL=false&allowPublicKeyRetrieval=true #?TC_INITSCRIPT=file:src/test/resources/scheme.sql
+#    username: test
+#    password: test1234
+#    hikari:
+#      maximum-pool-size: 40
   #   TestContainer가 필요없는 테스트를 위해 추가
-  #    driver-class-name: org.h2.Driver
-  #    url: jdbc:h2:mem:~/test
-  #    username: sa
-  #    password:
+      driver-class-name: org.h2.Driver
+      url: jdbc:h2:mem:~/test
+      username: sa
+      password:
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -35,12 +35,10 @@ logging:
             bind: trace
 
 clova:
-  api:
-    key: none
-  apigw:
-    key: none
-  request:
-    id: none
+  secret:
+    api-key: "none"
+    apigw-key: "none"
+    request-id: "none"
 security:
   jwt:
     token:

@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import site.radio.clova.dailyReport.ClovaDailyAnalysisResult;
-import site.radio.clova.dailyReport.DailyReportExtractor;
+import site.radio.clova.dailyReport.DailyReportMessageParser;
 import site.radio.clova.dto.ClovaResponseDto;
 import site.radio.clova.service.ClovaService;
 import site.radio.common.aop.transaction.NamedLock;
@@ -66,10 +65,10 @@ public class DailyReportService {
         List<Letter> letters = findRecentLetters(userId, targetDate);
 
         // 클로바에 분석 요청
-        ClovaResponseDto clovaResponse = requestClovaAnalysis(letters);
+        ClovaResponseDto clovaResponse = clovaService.sendDailyReportRequest(letters);
 
         // 클로바 응답 파싱
-        ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportExtractor.extract(clovaResponse);
+        ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportMessageParser.extract(clovaResponse);
 
         // 데일리 리포트 저장
         DailyReport dailyReport = buildDailyReport(targetDate, clovaDailyAnalysisResult);
@@ -91,10 +90,10 @@ public class DailyReportService {
         List<Letter> letters = findRecentLetters(userId, targetDate);
 
         // 클로바에 분석 요청
-        ClovaResponseDto clovaResponse = requestClovaAnalysis(letters);
+        ClovaResponseDto clovaResponse = clovaService.sendDailyReportRequest(letters);
 
         // 클로바 응답 파싱
-        ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportExtractor.extract(clovaResponse);
+        ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportMessageParser.extract(clovaResponse);
 
         // 데일리 리포트 저장
         DailyReport dailyReport = buildDailyReport(targetDate, clovaDailyAnalysisResult);
@@ -118,51 +117,29 @@ public class DailyReportService {
         return DailyReportResponseDto.of(dailyReport, letterAnalyses);
     }
 
-    public void createDailyReportsBy(UUID userId, LocalDate startDate, LocalDate endDate) {
-        // 주간분석을 요청한 기간 동안 사용자가 작성한 편지들 찾기
-        List<Letter> userLettersByLatest = letterRepository.findByCreatedAtDesc(userId,
-                startDate.atStartOfDay(),
-                LocalDateTime.of(endDate, LocalTime.MAX));
-
-        // 날짜별로 편지들을 3개씩 묶기
-        Map<LocalDate, List<Letter>> latestLettersByDate = userLettersByLatest.stream()
-                .collect(Collectors.groupingBy(
-                        letter -> letter.getCreatedAt().toLocalDate()));
-
-        // 이미 일일 분석이 생성된 날짜는 제거
-        latestLettersByDate.values().removeIf(
-                letters -> letters.stream().anyMatch(letter -> letter.getDailyReport() != null)
-        );
-
-        // 일일 분석을 생성하려는 편지들을 날짜당 3개로 제한
-        Map<LocalDate, List<Letter>> latestThreeLettersByDate = latestLettersByDate.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Entry::getKey,
-                        entry -> entry.getValue().stream()
-                                .limit(3)
-                                .collect(Collectors.toList())
-                ));
-
-        // 편지 3개에 대한 분석을 Clova에게 요청해서 받은 결과물들
-        Map<ClovaDailyAnalysisResult, List<Letter>> lettersByAnalysisResult = latestThreeLettersByDate.values().stream()
-                .collect(Collectors.toMap(
-                        letters -> DailyReportExtractor.extract(requestClovaAnalysis(letters)),
-                        letters -> letters
-                ));
-
+    public void saveClovaDailyAnalysisResult(Map<ClovaDailyAnalysisResult, List<Letter>> lettersByAnalysisResult) {
         // 분석결과와 편지들을 가지고 데일리 리포트 생성
+        Map<UUID, Letter> persistenceLetters = letterRepository.findAllById(lettersByAnalysisResult.values().stream()
+                        .flatMap(letters -> letters.stream().map(Letter::getId))
+                        .toList())
+                .stream()
+                .collect(Collectors.toMap(
+                        Letter::getId,
+                        letter -> letter
+                ));
+
         Map<DailyReport, List<Letter>> lettersByDailyReport = lettersByAnalysisResult.entrySet().stream()
                 .collect(Collectors.toMap(
                         entry -> buildDailyReport(entry.getValue().get(0).getCreatedAt().toLocalDate(), entry.getKey()),
-                        Entry::getValue
+                        entry -> entry.getValue().stream()
+                                .map(letter -> persistenceLetters.get(letter.getId())) // 영속 상태로 변환
+                                .toList()
                 ));
-        dailyReportRepository.saveAll(lettersByDailyReport.keySet());
 
         // 편지들에 알맞는 데일리 리포트를 setter 주입
-        lettersByDailyReport.forEach((key, value) ->
-                value.forEach(
-                        letter -> letter.setDailyReport(key)
-                ));
+        lettersByDailyReport.forEach((dailyReport, letters) ->
+                letters.forEach(letter -> letter.setDailyReport(dailyReport)));
+        dailyReportRepository.saveAll(lettersByDailyReport.keySet());
 
         // 편지와 분석결과를 가지고 편지분석엔티티들 생성 및 저장
         List<LetterAnalysis> letterAnalyses = lettersByAnalysisResult.entrySet().stream()
@@ -171,11 +148,17 @@ public class DailyReportService {
         letterAnalysisRepository.saveAll(letterAnalyses);
     }
 
+    @Transactional(readOnly = true)
     public DailyStaticsOneWeekResponseDto findDailyStaticsInOneWeek(UUID userId, List<LocalDate> oneWeekDates) {
         List<DailyReport> dailyReports = dailyReportRepository.findByTargetDateIn(userId, oneWeekDates);
         DailyReportStaticsDto dto = dailyReportRepository.findStaticsBy(userId, oneWeekDates);
 
         return DailyStaticsOneWeekResponseDto.of(dailyReports, dto);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DailyReport> getDailyReportsOfOneWeek(UUID userId, List<LocalDate> oneWeekDates) {
+        return dailyReportRepository.findByTargetDateIn(userId, oneWeekDates);
     }
 
     /**
@@ -199,29 +182,6 @@ public class DailyReportService {
             throw new LetterNotFoundException("Letters for daily analysis not found.");
         }
         return letters;
-    }
-
-    private ClovaResponseDto requestClovaAnalysis(List<Letter> letters) {
-        // 편지 내용 구분자 동적 생성
-        String msgSeparator = Long.toHexString(Double.doubleToLongBits(Math.random()));
-
-        String formattedMessages = letters.stream()
-                .map(letter -> String.format("<%s:%s>\n%s\n</%s:%s>",
-                        LETTER_SEPARATOR, msgSeparator,
-                        reformatMsg(letter.getMessage()),
-                        LETTER_SEPARATOR, msgSeparator))
-                .collect(Collectors.joining("\n"));
-
-        return clovaService.sendDailyReportRequest(formattedMessages);
-    }
-
-    private String reformatMsg(String input) {
-        return input
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll("&", "&amp;")
-                .replaceAll("\"", "&quot;")
-                .replaceAll("'", "&apos;");
     }
 
     private DailyReport buildDailyReport(LocalDate targetDate, ClovaDailyAnalysisResult clovaDailyAnalysisResult) {

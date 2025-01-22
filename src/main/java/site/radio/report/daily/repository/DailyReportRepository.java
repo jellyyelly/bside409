@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.radio.report.daily.domain.DailyReport;
 import site.radio.report.daily.dto.DailyReportStaticsDto;
+import site.radio.report.weekly.domain.WeeklyReport;
 
 @Repository
 public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> {
@@ -55,4 +57,12 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> 
             WHERE w.startDate = :startDate AND w.endDate = :endDate
             """)
     List<DailyReport> findDailyReportsWithWeeklyReport(UUID userId, LocalDate startDate, LocalDate endDate);
+
+    @Query("""
+            UPDATE DailyReport d
+            SET d.weeklyReport = :weeklyReport
+            WHERE d.id IN :dailyReportIds
+            """)
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    void updateWeeklyReportId(WeeklyReport weeklyReport, List<UUID> dailyReportIds);
 }
