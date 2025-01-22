@@ -1,6 +1,5 @@
 package site.radio.facade;
 
-import feign.FeignException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,16 +32,14 @@ public class LetterReplyFacadeService {
             throw new RateLimitException("요청 제한 횟수 초과");
         }
 
-        try {
-            // 외부 API 호출
-            ClovaResponseDto clovaResponse = clovaService.send(letterRequestDto.getMessage());
-            return clovaService.extract(clovaResponse);
-        } catch (FeignException e) {
+        // 외부 API 호출
+        ClovaResponseDto clovaResponse = clovaService.send(letterRequestDto.getMessage());
+        if (clovaResponse.hasFallbackMessage()) {
             // 외부 API 호출에 예외 발생 시 사용 횟수 롤백 이벤트 발행, event status => ROLLBACK_REQUIRED
             log.error("clova studio api 호출에 문제가 발생했습니다. userId: {}", letterRequestDto.getUserId());
             rateLimitService.rollback(letterRequestDto.getUserId());
-            throw e;
         }
+        return clovaService.extract(clovaResponse);
     }
 
     @Transactional
