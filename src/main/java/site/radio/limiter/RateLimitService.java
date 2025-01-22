@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -26,7 +27,7 @@ public class RateLimitService {
     @Value("${redis.expire}")
     private long BASIC_EXPIRE_TIME;
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 유저의 요청이 제한 횟수를 초과하는지 유저 아이디로 조회하는 메서드.
