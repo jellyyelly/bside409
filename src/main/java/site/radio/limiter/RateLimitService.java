@@ -72,16 +72,20 @@ public class RateLimitService {
 
     @Transactional
     @EventListener
-    public void rollback(RateLimitRollbackEvent event) {
+    public void handleRollbackEvent(RateLimitRollbackEvent event) {
         // event status => ROLLBACK_PROCESSING
         event.process();
 
-        String key = getKey(event.getUserId());
-        redisTemplate.opsForValue().decrement(key, 1);
-        log.info("사용 횟수가 롤백 되었습니다. userId: {}", event.getUserId());
+        rollback(event.getUserId());
 
         // event status => ROLLBACK_COMPLETE
         event.complete();
+    }
+
+    public void rollback(String userId) {
+        String key = getKey(userId);
+        redisTemplate.opsForValue().decrement(key, 1);
+        log.info("사용 횟수가 롤백 되었습니다. userId: {}", userId);
     }
 
     private String getKey(String userId) {
