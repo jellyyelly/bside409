@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import site.radio.clova.dto.ClovaResponseDto;
 import site.radio.clova.service.DummyReportClovaService;
@@ -15,6 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import site.radio.error.ExternalApiClientException;
+import site.radio.error.ExternalApiServerException;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -41,5 +44,39 @@ class ClovaFeignClientTest {
 
         // then
         assertThat(result).isExactlyInstanceOf(ClovaResponseDto.class);
+    }
+
+    @DisplayName("클로바 서버 요청 시 FeignClientException이 발생하면 ExternalApiClientException이 throw 된다.")
+    @Test
+    void checkClovaClientException() {
+        // given
+        stubFor(post("/")
+                .willReturn(aResponse()
+                        .withStatus(400)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("clova server 400 error test body")
+                )
+        );
+
+        // when & then
+        assertThatThrownBy(() -> clovaService.sendWeeklyReportRequest(ClovaWeeklyReportRequestDto.from("테스트용")))
+                .isExactlyInstanceOf(ExternalApiClientException.class);
+    }
+
+    @DisplayName("클로바 서버 요청 시 FeignServerException이 발생하면 ExternalApiServerException이 throw 된다.")
+    @Test
+    void checkClovaServerException() {
+        // given
+        stubFor(post("/")
+                .willReturn(aResponse()
+                        .withStatus(500)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("clova server 500 error test body")
+                )
+        );
+
+        // when & then
+        assertThatThrownBy(() -> clovaService.sendWeeklyReportRequest(ClovaWeeklyReportRequestDto.from("테스트용")))
+                .isExactlyInstanceOf(ExternalApiServerException.class);
     }
 }

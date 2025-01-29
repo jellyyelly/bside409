@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(
         name = "clova-service",
         url = "${feign.clova.url}",
-        configuration = ClovaFeignConfig.class,
-        fallbackFactory = ClovaServiceFallbackFactory.class
+        configuration = ClovaFeignConfig.class
 )
 public interface ClovaFeignClient {
 

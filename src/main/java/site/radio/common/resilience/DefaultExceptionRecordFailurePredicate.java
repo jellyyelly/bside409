@@ -23,6 +23,6 @@ public class DefaultExceptionRecordFailurePredicate implements Predicate<Throwab
             return true;
         }
 
-        return throwable instanceof FeignException.FeignServerException; // Fail 처리 (true)
+        return throwable instanceof FeignException; // Fail 처리 (true)
     }
 }
