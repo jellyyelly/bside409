@@ -34,12 +34,15 @@ public class LetterReplyFacadeService {
 
         // 외부 API 호출
         ClovaResponseDto clovaResponse = clovaService.send(letterRequestDto.getMessage());
-        if (clovaResponse.hasFallbackMessage()) {
-            // 외부 API 호출에 예외 발생 시 사용 횟수 롤백 이벤트 발행, event status => ROLLBACK_REQUIRED
+
+        TwoTypeMessage twoTypeMessage = null;
+        try {
+            twoTypeMessage = clovaService.extract(clovaResponse);
+        } catch (IllegalArgumentException e) {
             log.error("clova studio api 호출에 문제가 발생했습니다. userId: {}", letterRequestDto.getUserId());
             rateLimitService.rollback(letterRequestDto.getUserId());
         }
-        return clovaService.extract(clovaResponse);
+        return twoTypeMessage;
     }
 
     @Transactional

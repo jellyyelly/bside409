@@ -73,10 +73,6 @@ public class ClovaResponseDto {
         return result.message.getContent();
     }
 
-    public boolean hasFallbackMessage() {
-        return FALLBACK_STRING.equals(result.message.getContent());
-    }
-
     public static ClovaResponseDto defaultFallbackResponse() {
         return ClovaResponseDto.builder()
                 .status(defaultFallbackStatus())
