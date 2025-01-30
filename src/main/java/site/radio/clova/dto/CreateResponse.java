@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.clova.prompt.PromptRole;
 
 /**
  * Clova Studio 로부터 응답을 받는 DTO
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PROTECTED)
-public class ClovaResponseDto {
+public class CreateResponse {
 
     @Deprecated
     private static final String CLIENT_ERROR = "4";
@@ -44,7 +45,7 @@ public class ClovaResponseDto {
     @Builder(access = AccessLevel.PROTECTED)
     public static class ResultDto {
 
-        private ClovaMessageFormat message;
+        private CreateRequestFormat message;
         private int inputLength;
         private int outputLength;
         private String stopReason;
@@ -73,8 +74,8 @@ public class ClovaResponseDto {
         return result.message.getContent();
     }
 
-    public static ClovaResponseDto defaultFallbackResponse() {
-        return ClovaResponseDto.builder()
+    public static CreateResponse defaultFallbackResponse() {
+        return CreateResponse.builder()
                 .status(defaultFallbackStatus())
                 .result(defaultFallbackResult())
                 .build();
@@ -89,7 +90,7 @@ public class ClovaResponseDto {
 
     private static ResultDto defaultFallbackResult() {
         return ResultDto.builder()
-                .message(ClovaMessageFormat.of(ClovaRole.ASSISTANT, FALLBACK_STRING))
+                .message(CreateRequestFormat.of(PromptRole.ASSISTANT, FALLBACK_STRING))
                 .inputLength(0)
                 .outputLength(0)
                 .stopReason(FALLBACK_STRING)
