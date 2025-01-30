@@ -1,4 +1,4 @@
-package site.radio.clova.service;
+package site.radio.clova.client;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
