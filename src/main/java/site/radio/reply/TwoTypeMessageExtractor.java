@@ -1,4 +1,4 @@
-package site.radio.clova.letter;
+package site.radio.reply;
 
 import static site.radio.user.domain.Preference.F;
 

@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import site.radio.clova.letter.TwoTypeMessage;
-import site.radio.facade.LetterReplyFacadeService;
+import site.radio.facade.ReplyFacadeService;
 import site.radio.reply.ReplyResponseDto;
+import site.radio.reply.TwoTypeMessage;
 
 @Tag(name = "letter", description = "편지 API")
 @RestController

@@ -1,7 +1,5 @@
 package site.radio.reply;
 
-import site.radio.clova.letter.TwoTypeMessage;
-import site.radio.user.domain.Preference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -10,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import site.radio.user.domain.Preference;
 
 @Schema(description = "두 유형의 답장 정보가 들어있는 DTO")
 @Getter
