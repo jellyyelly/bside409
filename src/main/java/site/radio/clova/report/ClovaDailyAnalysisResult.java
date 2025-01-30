@@ -1,4 +1,4 @@
-package site.radio.clova.dailyReport;
+package site.radio.clova.report;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

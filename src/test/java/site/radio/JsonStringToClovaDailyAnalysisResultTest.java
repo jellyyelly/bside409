@@ -1,6 +1,6 @@
 package site.radio;
 
-import site.radio.clova.dailyReport.ClovaDailyAnalysisResult;
+import site.radio.clova.report.ClovaDailyAnalysisResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
