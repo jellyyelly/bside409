@@ -14,8 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import site.radio.clova.dto.ClovaResponseDto;
-import site.radio.clova.letter.TwoTypeMessage;
+import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
 import site.radio.error.LetterNotFoundException;
 import site.radio.error.UserNotFoundException;
@@ -29,6 +28,7 @@ import site.radio.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class ReplyService {
 
+    private final ReplyPromptTemplate replyPromptTemplate;
     private final ClovaService clovaService;
     private final LetterService letterService;
     private final UserRepository userRepository;
@@ -48,8 +48,9 @@ public class ReplyService {
             key = "#letterResponse.userId.toString()"
     )
     public ReplyResponseDto makeAndSaveReply(LetterResponseDto letterResponse) {
-        ClovaResponseDto clovaResponse = clovaService.send(letterResponse.getContent());
-        TwoTypeMessage twoTypeMessage = clovaService.extract(clovaResponse);
+        CreateResponse clovaResponse = clovaService.sendWithPromptTemplate(replyPromptTemplate,
+                letterResponse.getContent());
+        TwoTypeMessage twoTypeMessage = TwoTypeMessageExtractor.extract(clovaResponse.getResultMessage());
 
         Letter letter = letterService.findLetter(letterResponse.getLetterId());
 

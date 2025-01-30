@@ -40,7 +40,7 @@ public class ReplyFacadeService {
 
         TwoTypeMessage twoTypeMessage = null;
         try {
-            twoTypeMessage = clovaService.extract(clovaResponse);
+            twoTypeMessage = TwoTypeMessageExtractor.extract(clovaResponse.getResultMessage());
         } catch (IllegalArgumentException e) {
             log.error("clova studio api 호출에 문제가 발생했습니다. userId: {}", letterRequest.getUserId());
             rateLimitService.rollback(letterRequest.getUserId());
