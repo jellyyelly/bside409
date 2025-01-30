@@ -9,9 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import site.radio.clova.dto.ClovaResponseDto;
+import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
-import site.radio.clova.weekly.ClovaWeeklyReportRequestDto;
 import site.radio.error.DailyReportNotFoundException;
 import site.radio.error.WeeklyReportAlreadyExistsException;
 import site.radio.error.WeeklyReportNotFoundException;
@@ -30,6 +29,7 @@ import site.radio.report.weekly.repository.WeeklyReportRepository;
 @RequiredArgsConstructor
 public class WeeklyReportService {
 
+    private final WeeklyReportPromptTemplate promptTemplate;
     private final DailyReportRepository dailyReportRepository;
     private final ClovaService clovaService;
     private final WeeklyReportRepository weeklyReportRepository;
@@ -60,9 +60,8 @@ public class WeeklyReportService {
                 .collect(Collectors.joining());
 
         // 주간 분석에 필요한 위로 한마디 요청
-        ClovaResponseDto clovaResponseDto = clovaService.sendWeeklyReportRequest(
-                ClovaWeeklyReportRequestDto.from(descriptions));
-        String resultMessage = clovaResponseDto.getResultMessage();
+        CreateResponse createResponse = clovaService.sendWithPromptTemplate(promptTemplate, descriptions);
+        String resultMessage = createResponse.getResultMessage();
 
         WeeklyDataManager manager = new WeeklyDataManager(startDate); // TODO: util class 로 리팩토링 필요
         WeeklyReport weeklyReport = WeeklyReport.builder()

@@ -13,9 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import site.radio.clova.dailyReport.ClovaDailyAnalysisResult;
-import site.radio.clova.dailyReport.DailyReportExtractor;
-import site.radio.clova.dto.ClovaResponseDto;
+import site.radio.clova.dto.CreateResponse;
+import site.radio.clova.report.ClovaDailyAnalysisResult;
+import site.radio.clova.report.DailyReportExtractor;
 import site.radio.clova.service.ClovaService;
 import site.radio.common.aop.transaction.NamedLock;
 import site.radio.error.DailyReportAlreadyExistsException;
@@ -41,6 +41,7 @@ public class DailyReportService {
 
     private static final String LETTER_SEPARATOR = "sharpie-sep";
 
+    private final DailyReportPromptTemplate promptTemplate;
     private final DailyReportRepository dailyReportRepository;
     private final LetterRepository letterRepository;
     private final LetterAnalysisRepository letterAnalysisRepository;
@@ -66,7 +67,7 @@ public class DailyReportService {
         List<Letter> letters = findRecentLetters(userId, targetDate);
 
         // 클로바에 분석 요청
-        ClovaResponseDto clovaResponse = requestClovaAnalysis(letters);
+        CreateResponse clovaResponse = requestClovaAnalysis(letters);
 
         // 클로바 응답 파싱
         ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportExtractor.extract(clovaResponse);
@@ -91,7 +92,7 @@ public class DailyReportService {
         List<Letter> letters = findRecentLetters(userId, targetDate);
 
         // 클로바에 분석 요청
-        ClovaResponseDto clovaResponse = requestClovaAnalysis(letters);
+        CreateResponse clovaResponse = requestClovaAnalysis(letters);
 
         // 클로바 응답 파싱
         ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportExtractor.extract(clovaResponse);
@@ -201,7 +202,7 @@ public class DailyReportService {
         return letters;
     }
 
-    private ClovaResponseDto requestClovaAnalysis(List<Letter> letters) {
+    private CreateResponse requestClovaAnalysis(List<Letter> letters) {
         // 편지 내용 구분자 동적 생성
         String msgSeparator = Long.toHexString(Double.doubleToLongBits(Math.random()));
 
@@ -212,7 +213,7 @@ public class DailyReportService {
                         LETTER_SEPARATOR, msgSeparator))
                 .collect(Collectors.joining("\n"));
 
-        return clovaService.sendDailyReportRequest(formattedMessages);
+        return clovaService.sendWithPromptTemplate(promptTemplate, formattedMessages);
     }
 
     private String reformatMsg(String input) {
