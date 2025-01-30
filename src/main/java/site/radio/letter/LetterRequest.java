@@ -1,17 +1,17 @@
 package site.radio.letter;
 
-import site.radio.user.domain.Preference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import site.radio.user.domain.Preference;
 
 @Schema(description = "유저가 전송하는 편지 DTO")
 @Getter
 @RequiredArgsConstructor
-public class LetterRequestDto {
+public class LetterRequest {
 
     @Schema(description = "유저의 아이디", requiredMode = RequiredMode.REQUIRED)
     @NotBlank(message = "유저의 아이디가 존재하지 않습니다.")

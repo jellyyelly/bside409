@@ -9,7 +9,7 @@ import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
 import site.radio.error.RateLimitException;
 import site.radio.letter.Letter;
-import site.radio.letter.LetterRequestDto;
+import site.radio.letter.LetterRequest;
 import site.radio.letter.LetterService;
 import site.radio.limiter.RateLimitService;
 import site.radio.reply.ReplyPromptTemplate;
@@ -29,9 +29,9 @@ public class ReplyFacadeService {
     private final LetterService letterService;
     private final ReplyService replyService;
 
-    public TwoTypeMessage sendLetterToClova(LetterRequestDto letterRequestDto) {
+    public TwoTypeMessage sendLetterToClova(LetterRequest letterRequest) {
         // 사용 횟수 선차감
-        if (!rateLimitService.preDeductUsage(letterRequestDto.getUserId())) {
+        if (!rateLimitService.preDeductUsage(letterRequest.getUserId())) {
             throw new RateLimitException("요청 제한 횟수 초과");
         }
 
@@ -42,19 +42,19 @@ public class ReplyFacadeService {
         try {
             twoTypeMessage = clovaService.extract(clovaResponse);
         } catch (IllegalArgumentException e) {
-            log.error("clova studio api 호출에 문제가 발생했습니다. userId: {}", letterRequestDto.getUserId());
-            rateLimitService.rollback(letterRequestDto.getUserId());
+            log.error("clova studio api 호출에 문제가 발생했습니다. userId: {}", letterRequest.getUserId());
+            rateLimitService.rollback(letterRequest.getUserId());
         }
         return twoTypeMessage;
     }
 
     @Transactional
-    public ReplyResponseDto responseReply(LetterRequestDto letterRequestDto, TwoTypeMessage twoTypeMessage) {
+    public ReplyResponseDto responseReply(LetterRequest letterRequest, TwoTypeMessage twoTypeMessage) {
         Letter letter = letterService.save(
-                UUID.fromString(letterRequestDto.getUserId()),
-                letterRequestDto.getMessage(),
-                letterRequestDto.getPreference(),
-                letterRequestDto.isPublished());
+                UUID.fromString(letterRequest.getUserId()),
+                letterRequest.getMessage(),
+                letterRequest.getPreference(),
+                letterRequest.isPublished());
 
         return replyService.save(letter, twoTypeMessage);
     }

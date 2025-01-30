@@ -22,7 +22,7 @@ public class LetterService {
     private final UserRepository userRepository;
     private final RateLimitService rateLimitService;
 
-    public LetterResponseDto saveLetter(LetterRequestDto letterDto) {
+    public LetterResponseDto saveLetter(LetterRequest letterDto) {
         if (!rateLimitService.preDeductUsage(letterDto.getUserId())) {
             throw new RateLimitException("요청 제한 횟수 초과");
         }
