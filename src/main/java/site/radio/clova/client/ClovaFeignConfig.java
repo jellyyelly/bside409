@@ -1,14 +1,27 @@
 package site.radio.clova.client;
 
+import feign.RequestInterceptor;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.StreamUtils;
 
 @Slf4j
+@EnableConfigurationProperties(ClovaKeyProperties.class)
 public class ClovaFeignConfig implements ErrorDecoder {
+
+    @Bean
+    public RequestInterceptor clovaRequestInterceptor(ClovaKeyProperties properties) {
+        return requestTemplate -> {
+            requestTemplate.header("X-NCP-CLOVASTUDIO-API-KEY", properties.getApiKey());
+            requestTemplate.header("X-NCP-APIGW-API-KEY", properties.getApigwKey());
+            requestTemplate.header("X-NCP-CLOVASTUDIO-REQUEST-ID", properties.getRequestId());
+        };
+    }
 
     @Override
     public Exception decode(String methodKey, Response response) {
