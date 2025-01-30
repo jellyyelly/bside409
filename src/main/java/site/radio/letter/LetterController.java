@@ -27,15 +27,15 @@ import site.radio.reply.TwoTypeMessage;
 public class LetterController {
 
     private final LetterService letterService;
-    private final LetterReplyFacadeService letterReplyFacadeService;
+    private final ReplyFacadeService replyFacadeService;
 
     @Operation(summary = "유저의 사연이 담긴 편지를 접수받는 API", description = "유저의 편지로부터 CLOVA를 이용해 답장을 제공합니다.")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ReplyResponseDto receiveLetter(@Valid @RequestBody LetterRequestDto letterRequestDto) {
-        TwoTypeMessage twoTypeMessage = letterReplyFacadeService.sendLetterToClova(letterRequestDto);
+        TwoTypeMessage twoTypeMessage = replyFacadeService.sendLetterToClova(letterRequestDto);
 
-        return letterReplyFacadeService.responseReply(letterRequestDto, twoTypeMessage);
+        return replyFacadeService.responseReply(letterRequestDto, twoTypeMessage);
     }
 
     @Operation(summary = "편지 삭제 요청 API", description = "요청한 편지 ID에 해당하는 편지를 제거합니다.")
