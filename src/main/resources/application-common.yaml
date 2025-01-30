@@ -2,6 +2,10 @@ spring:
   config:
     activate:
       on-profile: common
+    import:
+      - "classpath:/prompt/reply.yaml"
+      - "classpath:/prompt/daily-report.yaml"
+      - "classpath:/prompt/weekly-report.yaml"
   jpa:
     hibernate:
       naming:
