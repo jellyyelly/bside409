@@ -1,8 +1,9 @@
-package site.radio.clova.report;
+package site.radio.report.daily.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import site.radio.clova.dto.CreateResponse;
+import site.radio.report.daily.dto.ClovaDailyAnalysisResult;
 
 public class DailyReportExtractor {
 

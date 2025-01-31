@@ -1,4 +1,4 @@
-package site.radio.clova.report;
+package site.radio.report.daily.dto;
 
 import lombok.RequiredArgsConstructor;
 import site.radio.clova.dto.CreateResponse;

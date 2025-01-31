@@ -1,10 +1,10 @@
 package site.radio;
 
-import site.radio.clova.report.ClovaDailyAnalysisResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import site.radio.report.daily.dto.ClovaDailyAnalysisResult;
 
 class JsonStringToClovaDailyAnalysisResultTest {
 
@@ -33,7 +33,8 @@ class JsonStringToClovaDailyAnalysisResultTest {
                 """;
 
         // When
-        ClovaDailyAnalysisResult clovaDailyAnalysisResult = objectMapper.readValue(validResponseJson, ClovaDailyAnalysisResult.class);
+        ClovaDailyAnalysisResult clovaDailyAnalysisResult = objectMapper.readValue(validResponseJson,
+                ClovaDailyAnalysisResult.class);
 
         // Then
         Assertions.assertThat(clovaDailyAnalysisResult).isNotNull();
