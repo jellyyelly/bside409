@@ -1,4 +1,4 @@
-package site.radio.reply;
+package site.radio.reply.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import site.radio.reply.domain.Reply;
 import site.radio.user.domain.Preference;
 
 @Schema(description = "두 유형의 답장 정보가 들어있는 DTO")

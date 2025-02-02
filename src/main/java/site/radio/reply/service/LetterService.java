@@ -1,4 +1,4 @@
-package site.radio.letter;
+package site.radio.reply.service;
 
 import java.util.List;
 import java.util.UUID;
@@ -9,6 +9,10 @@ import site.radio.error.LetterNotFoundException;
 import site.radio.error.RateLimitException;
 import site.radio.error.UserNotFoundException;
 import site.radio.limiter.RateLimitService;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.dto.LetterRequest;
+import site.radio.reply.dto.LetterResponseDto;
+import site.radio.reply.repository.LetterRepository;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.User;
 import site.radio.user.repository.UserRepository;

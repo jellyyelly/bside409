@@ -6,11 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterCreationEvent;
-import site.radio.letter.LetterService;
-import site.radio.reply.ReplyResponseDto;
-import site.radio.reply.ReplyService;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.service.LetterService;
+import site.radio.reply.service.ReplyService;
+import site.radio.reply.service.event.LetterCreationEvent;
 
 @Slf4j
 @RequiredArgsConstructor

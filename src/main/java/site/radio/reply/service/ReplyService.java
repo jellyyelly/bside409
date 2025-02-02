@@ -1,4 +1,4 @@
-package site.radio.reply;
+package site.radio.reply.service;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -18,9 +18,13 @@ import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
 import site.radio.error.LetterNotFoundException;
 import site.radio.error.UserNotFoundException;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterResponseDto;
-import site.radio.letter.LetterService;
+import site.radio.reply.repository.ReplyRepository;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.TwoTypeMessage;
+import site.radio.reply.dto.TwoTypeMessageExtractor;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.domain.Reply;
+import site.radio.reply.dto.LetterResponseDto;
 import site.radio.user.repository.UserRepository;
 
 @Service

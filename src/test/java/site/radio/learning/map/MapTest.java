@@ -1,8 +1,5 @@
 package site.radio.learning.map;
 
-import site.radio.letter.Letter;
-import site.radio.report.daily.domain.DailyReport;
-import site.radio.user.domain.User;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import site.radio.reply.domain.Letter;
+import site.radio.report.daily.domain.DailyReport;
+import site.radio.user.domain.User;
 
 public class MapTest {
 
@@ -33,7 +33,8 @@ public class MapTest {
         System.out.println("기존 k, v");
         lettersByDate.forEach((k, v) -> System.out.println("k = " + k + " v = " + v));
 
-        lettersByDate.values().removeIf(letters -> letters.stream().anyMatch(letter -> letter.getDailyReport() != null));
+        lettersByDate.values()
+                .removeIf(letters -> letters.stream().anyMatch(letter -> letter.getDailyReport() != null));
         System.out.println("변경 k, v");
         lettersByDate.forEach((k, v) -> System.out.println("k = " + k + " v = " + v));
 

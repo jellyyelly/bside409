@@ -1,10 +1,11 @@
-package site.radio.reply;
+package site.radio.reply.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import site.radio.reply.domain.Reply;
 
 @Schema(description = "CLOVA가 생성한 두 유형의 답장 DTO")
 @Getter

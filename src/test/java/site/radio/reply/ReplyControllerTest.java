@@ -6,8 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import site.radio.letter.Letter;
-import site.radio.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +27,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import site.radio.reply.controller.ReplyController;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.domain.Reply;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.service.ReplyService;
+import site.radio.user.domain.User;
 
 @ExtendWith(MockitoExtension.class)
 class ReplyControllerTest {

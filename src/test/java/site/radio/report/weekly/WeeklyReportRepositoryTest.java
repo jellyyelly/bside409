@@ -1,17 +1,5 @@
 package site.radio.report.weekly;
 
-import site.radio.auth.OAuth2Provider;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterRepository;
-import site.radio.report.daily.domain.CoreEmotion;
-import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.repository.DailyReportRepository;
-import site.radio.report.weekly.domain.WeeklyReport;
-import site.radio.report.weekly.repository.WeeklyReportRepository;
-import site.radio.user.domain.Preference;
-import site.radio.user.domain.Role;
-import site.radio.user.domain.User;
-import site.radio.user.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +9,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Profile;
+import site.radio.auth.OAuth2Provider;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.repository.LetterRepository;
+import site.radio.report.daily.domain.CoreEmotion;
+import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.repository.DailyReportRepository;
+import site.radio.report.weekly.domain.WeeklyReport;
+import site.radio.report.weekly.repository.WeeklyReportRepository;
+import site.radio.user.domain.Preference;
+import site.radio.user.domain.Role;
+import site.radio.user.domain.User;
+import site.radio.user.repository.UserRepository;
 
 @DataJpaTest
 @Profile("test")

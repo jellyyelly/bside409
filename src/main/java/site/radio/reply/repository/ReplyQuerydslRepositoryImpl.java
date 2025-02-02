@@ -1,4 +1,4 @@
-package site.radio.reply;
+package site.radio.reply.repository;
 
 import static site.radio.letter.QLetter.letter;
 import static site.radio.reply.QReply.reply;
@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
+import site.radio.reply.domain.Reply;
 
 public class ReplyQuerydslRepositoryImpl implements ReplyQuerydslRepository {
 

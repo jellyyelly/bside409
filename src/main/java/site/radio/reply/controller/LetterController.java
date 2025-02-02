@@ -1,4 +1,4 @@
-package site.radio.letter;
+package site.radio.reply.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,8 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import site.radio.facade.ReplyFacadeService;
-import site.radio.reply.ReplyResponseDto;
-import site.radio.reply.TwoTypeMessage;
+import site.radio.reply.dto.LetterRequest;
+import site.radio.reply.dto.LetterResponseDto;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.TwoTypeMessage;
+import site.radio.reply.service.LetterService;
 
 @Tag(name = "letter", description = "편지 API")
 @RestController

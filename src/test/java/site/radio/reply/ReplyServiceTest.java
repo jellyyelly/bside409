@@ -10,8 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import site.radio.letter.Letter;
-import site.radio.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +25,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.domain.Reply;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.repository.ReplyRepository;
+import site.radio.reply.service.ReplyService;
+import site.radio.user.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")

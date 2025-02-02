@@ -8,15 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
 import site.radio.error.RateLimitException;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterRequest;
-import site.radio.letter.LetterService;
 import site.radio.limiter.RateLimitService;
-import site.radio.reply.ReplyPromptTemplate;
-import site.radio.reply.ReplyResponseDto;
-import site.radio.reply.ReplyService;
-import site.radio.reply.TwoTypeMessage;
-import site.radio.reply.TwoTypeMessageExtractor;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.dto.LetterRequest;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.TwoTypeMessage;
+import site.radio.reply.dto.TwoTypeMessageExtractor;
+import site.radio.reply.service.LetterService;
+import site.radio.reply.service.ReplyPromptTemplate;
+import site.radio.reply.service.ReplyService;
 
 @Slf4j
 @RequiredArgsConstructor

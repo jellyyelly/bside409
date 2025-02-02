@@ -1,6 +1,5 @@
-package site.radio.letter;
+package site.radio.reply.dto;
 
-import site.radio.user.domain.Preference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.reply.domain.Letter;
+import site.radio.user.domain.Preference;
 
 @Tag(name = "letter")
 @Schema(description = "유저가 전송한 편지가 저장에 성공하면 받는 응답 DTO")

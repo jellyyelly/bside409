@@ -1,11 +1,11 @@
-package site.radio.letter;
+package site.radio.reply.service.event;
 
 import java.util.concurrent.CompletableFuture;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import site.radio.common.EventStatus;
-import site.radio.reply.ReplyResponseDto;
-import site.radio.reply.TwoTypeMessage;
+import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.TwoTypeMessage;
 import site.radio.user.domain.Preference;
 
 @Getter

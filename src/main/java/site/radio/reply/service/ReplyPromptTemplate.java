@@ -1,4 +1,4 @@
-package site.radio.reply;
+package site.radio.reply.service;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,23 +1,9 @@
 package site.radio.report.retrieve.service;
 
-import static site.radio.common.cache.CacheGroup.DAILY_REPORT_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static site.radio.common.cache.CacheGroup.DAILY_REPORT_STATUS;
 
-import site.radio.auth.OAuth2Provider;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterRepository;
-import site.radio.report.daily.domain.CoreEmotion;
-import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.repository.DailyReportRepository;
-import site.radio.report.retrieve.dto.DailyReportStatusResponseDto;
-import site.radio.report.retrieve.dto.WeeklyReportStatusResponseDto;
-import site.radio.report.weekly.domain.WeeklyReport;
-import site.radio.report.weekly.repository.WeeklyReportRepository;
-import site.radio.user.domain.Preference;
-import site.radio.user.domain.Role;
-import site.radio.user.domain.User;
-import site.radio.user.repository.UserRepository;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import jakarta.transaction.Transactional;
@@ -42,6 +28,20 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import site.radio.auth.OAuth2Provider;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.repository.LetterRepository;
+import site.radio.report.daily.domain.CoreEmotion;
+import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.repository.DailyReportRepository;
+import site.radio.report.retrieve.dto.DailyReportStatusResponseDto;
+import site.radio.report.retrieve.dto.WeeklyReportStatusResponseDto;
+import site.radio.report.weekly.domain.WeeklyReport;
+import site.radio.report.weekly.repository.WeeklyReportRepository;
+import site.radio.user.domain.Preference;
+import site.radio.user.domain.Role;
+import site.radio.user.domain.User;
+import site.radio.user.repository.UserRepository;
 
 @Testcontainers
 @SpringBootTest

@@ -1,7 +1,5 @@
-package site.radio.letter;
+package site.radio.reply.repository;
 
-import site.radio.report.retrieve.dto.DailyReportDto;
-import site.radio.report.retrieve.dto.WeeklyReportDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -10,6 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import site.radio.reply.domain.Letter;
+import site.radio.report.retrieve.dto.DailyReportDto;
+import site.radio.report.retrieve.dto.WeeklyReportDto;
 
 @Repository
 public interface LetterRepository extends JpaRepository<Letter, UUID> {

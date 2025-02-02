@@ -1,9 +1,5 @@
-package site.radio.letter;
+package site.radio.reply.domain;
 
-import site.radio.common.BaseTimeEntity;
-import site.radio.report.daily.domain.DailyReport;
-import site.radio.user.domain.Preference;
-import site.radio.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +17,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import site.radio.common.BaseTimeEntity;
+import site.radio.report.daily.domain.DailyReport;
+import site.radio.user.domain.Preference;
+import site.radio.user.domain.User;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

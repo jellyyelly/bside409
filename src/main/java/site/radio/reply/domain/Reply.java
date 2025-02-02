@@ -1,7 +1,5 @@
-package site.radio.reply;
+package site.radio.reply.domain;
 
-import site.radio.common.BaseTimeEntity;
-import site.radio.letter.Letter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.common.BaseTimeEntity;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
