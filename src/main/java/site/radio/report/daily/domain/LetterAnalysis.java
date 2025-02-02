@@ -1,6 +1,7 @@
 package site.radio.report.daily.domain;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -12,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.List;
@@ -34,9 +36,13 @@ public class LetterAnalysis extends BaseTimeEntity {
     @Column(name = "letter_analysis_id")
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "letter_id")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "letter_id", unique = true)
     private Letter letter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "daily_report_id")
+    private DailyReport dailyReport;
 
     @Type(JsonType.class)
     @Column(name = "sensitive_emotions", columnDefinition = "json")
@@ -53,8 +59,10 @@ public class LetterAnalysis extends BaseTimeEntity {
     private List<CoreEmotion> coreEmotions;
 
     @Builder
-    public LetterAnalysis(Letter letter, List<String> sensitiveEmotions, String topic, List<CoreEmotion> coreEmotions) {
+    public LetterAnalysis(Letter letter, DailyReport dailyReport, List<String> sensitiveEmotions, String topic,
+                          List<CoreEmotion> coreEmotions) {
         this.letter = letter;
+        this.dailyReport = dailyReport;
         this.sensitiveEmotions = sensitiveEmotions;
         this.topic = topic;
         this.coreEmotions = coreEmotions;

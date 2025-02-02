@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
@@ -76,33 +75,7 @@ public class DailyReportService {
         dailyReportRepository.save(dailyReport);
 
         // 감정 분석 저장
-        List<LetterAnalysis> letterAnalyses = buildLetterAnalyses(letters, clovaDailyAnalysisResult);
-        letterAnalyses.forEach(analysis -> analysis.getLetter().setDailyReport(dailyReport));
-        letterAnalysisRepository.saveAll(letterAnalyses);
-
-        return DailyReportResponseDto.of(dailyReport, letterAnalyses);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public DailyReportResponseDto createDailyReportWithFacade(UUID userId, LocalDate targetDate) {
-        if (dailyReportRepository.existsByUserAndTargetDate(userId, targetDate)) {
-            throw new DailyReportAlreadyExistsException("Duplicate daily report exists.");
-        }
-        List<Letter> letters = findRecentLetters(userId, targetDate);
-
-        // 클로바에 분석 요청
-        CreateResponse clovaResponse = requestClovaAnalysis(letters);
-
-        // 클로바 응답 파싱
-        ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportExtractor.extract(clovaResponse);
-
-        // 데일리 리포트 저장
-        DailyReport dailyReport = buildDailyReport(targetDate, clovaDailyAnalysisResult);
-        dailyReportRepository.save(dailyReport);
-
-        // 감정 분석 저장
-        List<LetterAnalysis> letterAnalyses = buildLetterAnalyses(letters, clovaDailyAnalysisResult);
-        letterAnalyses.forEach(analysis -> analysis.getLetter().setDailyReport(dailyReport));
+        List<LetterAnalysis> letterAnalyses = buildLetterAnalyses(letters, dailyReport, clovaDailyAnalysisResult);
         letterAnalysisRepository.saveAll(letterAnalyses);
 
         return DailyReportResponseDto.of(dailyReport, letterAnalyses);
@@ -233,6 +206,7 @@ public class DailyReportService {
     }
 
     private List<LetterAnalysis> buildLetterAnalyses(List<Letter> letters,
+                                                     DailyReport dailyReport,
                                                      ClovaDailyAnalysisResult clovaDailyAnalysisResult) {
         return clovaDailyAnalysisResult.getLetterAnalyses().stream()
                 .map(analysis -> {
@@ -241,6 +215,7 @@ public class DailyReportService {
 
                     return LetterAnalysis.builder()
                             .letter(letter)
+                            .dailyReport(dailyReport)
                             .topic(analysis.getTopic())
                             .coreEmotions(analysis.getCoreEmotions().stream()
                                     .map(CoreEmotion::findOrNeutral)

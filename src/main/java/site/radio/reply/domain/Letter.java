@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import site.radio.common.BaseTimeEntity;
-import site.radio.report.daily.domain.DailyReport;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.User;
 
@@ -37,11 +36,6 @@ public class Letter extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "daily_report_id")
-    private DailyReport dailyReport;
 
     @Column(name = "message")
     private String message;

@@ -31,30 +31,27 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
 
     @Query(value = """
                 SELECT
-                    l.daily_report_id AS dailyReportId,
-                    d.core_emotion AS coreEmotion,
-                    l.created_at AS createdAt
-                FROM letter l
-                JOIN reply r ON l.letter_id = r.letter_id
-                LEFT JOIN daily_report d ON d.daily_report_id = l.daily_report_id
-                WHERE l.user_id = :userId
-                    AND l.created_at >= :startDate
-                    AND l.created_at <= :endDate
-            """, nativeQuery = true)
+                    la.dailyReport.id AS dailyReportId,
+                    d.coreEmotion AS coreEmotion,
+                    la.createdAt AS createdAt
+                FROM LetterAnalysis la
+                LEFT JOIN la.dailyReport d
+                WHERE la.letter.user.id = :userId
+                    AND la.createdAt >= :startDate
+                    AND la.createdAt <= :endDate
+            """)
     List<DailyReportDto> findDailyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
     // TODO: 리팩토링 시 deprecated 예정
     @Query(value = """
                 SELECT
-                    d.weekly_report_id AS weeklyReportId,
-                    l.created_at AS letterCreatedAt
-                FROM letter l
-                LEFT JOIN daily_report d ON d.daily_report_id = l.daily_report_id
-                WHERE l.created_at >= :startDate AND l.created_at <= :endDate
-                    AND l.user_id = :userId
-            """,
-            nativeQuery = true
-    )
+                    d.weeklyReport.id AS weeklyReportId,
+                    la.createdAt AS letterCreatedAt
+                FROM LetterAnalysis la
+                LEFT JOIN la.dailyReport d
+                WHERE la.createdAt >= :startDate AND la.createdAt <= :endDate
+                    AND la.letter.user.id = :userId
+            """)
     List<WeeklyReportDto> findWeeklyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query(value = """

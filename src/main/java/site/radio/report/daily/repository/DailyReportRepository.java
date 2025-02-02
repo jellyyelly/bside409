@@ -14,44 +14,42 @@ import site.radio.report.daily.dto.DailyReportStaticsDto;
 public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> {
 
     @Query("""
-            SELECT COUNT(d) > 0
-            FROM DailyReport d
-            JOIN Letter l ON d.id = l.dailyReport.id
-            WHERE d.targetDate = :targetDate AND l.user.id = :userId
+            SELECT COUNT(*) > 0
+            FROM LetterAnalysis la
+            WHERE la.dailyReport.targetDate = :targetDate AND la.letter.user.id = :userId
             """)
     boolean existsByUserAndTargetDate(UUID userId, LocalDate targetDate);
 
     @Query("""
             SELECT d
-            FROM DailyReport d
-            JOIN Letter l ON d.id = l.dailyReport.id
-            WHERE d.targetDate = :targetDate AND l.user.id = :userId
+            FROM LetterAnalysis la
+            JOIN la.dailyReport d
+            WHERE la.dailyReport.targetDate = :targetDate AND la.letter.user.id = :userId
             """)
     Optional<DailyReport> findByUserAndTargetDate(UUID userId, LocalDate targetDate);
 
     @Query("""
             SELECT d
-            FROM DailyReport d
-            JOIN Letter l ON d.id = l.dailyReport.id
-            WHERE l.user.id = :userId AND d.targetDate IN :dates
+            FROM LetterAnalysis la
+            JOIN la.dailyReport d
+            WHERE la.letter.user.id = :userId AND la.dailyReport.targetDate IN :dates
             """)
     List<DailyReport> findByTargetDateIn(UUID userId, List<LocalDate> dates);
 
     @Query(value = """
             SELECT
-                COUNT(CASE WHEN l.published = TRUE THEN 1 END) AS publishedCount,
-                COUNT(CASE WHEN l.published = FALSE THEN 1 END) AS unPublishedCount
-            FROM daily_report d
-            JOIN letter l ON d.daily_report_id = l.daily_report_id
-            WHERE l.user_id = :userId AND d.target_date IN :dateRange
-            """, nativeQuery = true)
+                COUNT(CASE WHEN la.letter.published = TRUE THEN 1 END) AS publishedCount,
+                COUNT(CASE WHEN la.letter.published = FALSE THEN 1 END) AS unPublishedCount
+            FROM LetterAnalysis la
+            WHERE la.letter.user.id = :userId AND la.dailyReport.targetDate IN :dateRange
+            """)
     DailyReportStaticsDto findStaticsBy(UUID userId, List<LocalDate> dateRange);
 
     @Query("""
             SELECT d
             FROM WeeklyReport w
-            JOIN DailyReport d ON w.id = d.weeklyReport.id
-            JOIN Letter l ON d.id = l.dailyReport.id AND l.user.id = :userId
+            JOIN LetterAnalysis la ON la.dailyReport.weeklyReport.id = w.id AND la.letter.user.id = :userId
+            JOIN DailyReport d ON la.dailyReport.id = d.id
             WHERE w.startDate = :startDate AND w.endDate = :endDate
             """)
     List<DailyReport> findDailyReportsWithWeeklyReport(UUID userId, LocalDate startDate, LocalDate endDate);
