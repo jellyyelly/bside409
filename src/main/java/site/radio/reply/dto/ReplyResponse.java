@@ -15,7 +15,7 @@ import site.radio.user.domain.Preference;
 @Getter
 @Builder
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class ReplyResponseDto {
+public class ReplyResponse {
 
     @Schema(description = "저장된 답장의 식별자")
     private final UUID replyId;
@@ -39,8 +39,8 @@ public class ReplyResponseDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     private final LocalDateTime createdAt;
 
-    public static ReplyResponseDto of(Reply reply) {
-        return ReplyResponseDto.builder()
+    public static ReplyResponse of(Reply reply) {
+        return ReplyResponse.builder()
                 .replyId(reply.getId())
                 .userId(reply.getLetter().getUser().getId())
                 .content(reply.getLetter().getMessage())
@@ -51,8 +51,8 @@ public class ReplyResponseDto {
                 .build();
     }
 
-    public static ReplyResponseDto ofByUserId(Reply reply, UUID userId) {
-        return ReplyResponseDto.builder()
+    public static ReplyResponse ofByUserId(Reply reply, UUID userId) {
+        return ReplyResponse.builder()
                 .replyId(reply.getId())
                 .userId(userId)
                 .content(reply.getLetter().getMessage())

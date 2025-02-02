@@ -7,7 +7,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import site.radio.reply.domain.Letter;
-import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.service.LetterService;
 import site.radio.reply.service.ReplyService;
 import site.radio.reply.service.event.LetterCreationEvent;
@@ -33,7 +33,7 @@ public class LetterReplyEventListener {
                 event.isPublished());
 
         // reply 저장
-        ReplyResponseDto replyResponse = replyService.save(letter, event.getTwoTypeMessage());
+        ReplyResponse replyResponse = replyService.save(letter, event.getTwoTypeMessage());
 
         // future complete
         if (!event.getFuture().complete(replyResponse)) {

@@ -4,7 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import site.radio.common.EventStatus;
-import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.dto.TwoTypeMessage;
 import site.radio.user.domain.Preference;
 
@@ -17,7 +17,7 @@ public class LetterCreationEvent {
     private final Preference preference;
     private final boolean published;
     private final TwoTypeMessage twoTypeMessage;
-    private final CompletableFuture<ReplyResponseDto> future;
+    private final CompletableFuture<ReplyResponse> future;
     private EventStatus status = EventStatus.PENDING;
 
     public static LetterCreationEvent createEvent(String userId,
@@ -25,7 +25,7 @@ public class LetterCreationEvent {
                                                   Preference preference,
                                                   boolean published,
                                                   TwoTypeMessage twoTypeMessage,
-                                                  CompletableFuture<ReplyResponseDto> future) {
+                                                  CompletableFuture<ReplyResponse> future) {
         return new LetterCreationEvent(userId, message, preference, published, twoTypeMessage, future);
     }
 

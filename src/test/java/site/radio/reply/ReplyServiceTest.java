@@ -27,7 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import site.radio.reply.domain.Letter;
 import site.radio.reply.domain.Reply;
-import site.radio.reply.dto.ReplyResponseDto;
+import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.repository.ReplyRepository;
 import site.radio.reply.service.ReplyService;
 import site.radio.user.repository.UserRepository;
@@ -73,7 +73,7 @@ class ReplyServiceTest {
                         eq(published), eq(pageable));
 
         // when
-        Page<ReplyResponseDto> response = replyService.findMyLetterAndReply(userId, year, published, pageable);
+        Page<ReplyResponse> response = replyService.findMyLetterAndReply(userId, year, published, pageable);
 
         // then
         then(mockUserRepository).should().existsUserById(userId);

@@ -24,7 +24,9 @@ import site.radio.reply.dto.TwoTypeMessage;
 import site.radio.reply.dto.TwoTypeMessageExtractor;
 import site.radio.reply.domain.Letter;
 import site.radio.reply.domain.Reply;
-import site.radio.reply.dto.LetterResponseDto;
+import site.radio.reply.dto.ReplyResponse;
+import site.radio.reply.dto.TwoTypeMessage;
+import site.radio.reply.repository.ReplyRepository;
 import site.radio.user.repository.UserRepository;
 
 @Service

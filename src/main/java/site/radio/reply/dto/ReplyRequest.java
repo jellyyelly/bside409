@@ -12,7 +12,7 @@ import site.radio.user.domain.Preference;
 @Schema(description = "유저가 전송하는 편지 DTO")
 @Getter
 @RequiredArgsConstructor
-public class LetterRequest {
+public class ReplyRequest {
 
     @Schema(description = "유저의 아이디", requiredMode = RequiredMode.REQUIRED)
     @NotBlank(message = "유저의 아이디가 존재하지 않습니다.")
