@@ -1,7 +1,7 @@
 package site.radio.reply.repository;
 
-import static site.radio.letter.QLetter.letter;
-import static site.radio.reply.QReply.reply;
+import static site.radio.reply.domain.QLetter.letter;
+import static site.radio.reply.domain.QReply.reply;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
