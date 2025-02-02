@@ -1,7 +1,8 @@
 package site.radio.report.daily.dto;
 
-public interface DailyReportStaticsDto {
+public interface DailyReportStatics {
 
     int getPublishedCount();
+
     int getUnPublishedCount();
 }

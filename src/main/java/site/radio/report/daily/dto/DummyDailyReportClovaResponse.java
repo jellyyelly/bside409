@@ -7,7 +7,7 @@ import site.radio.clova.dto.CreateResponse;
  * 클로바 응답을 대체하는 더미 응답 DTO. 편지 개수에 따른 더미 응답을 동적으로 생성합니다.
  */
 @RequiredArgsConstructor
-public class DummyDailyReportClovaResponseDto extends CreateResponse {
+public class DummyDailyReportClovaResponse extends CreateResponse {
 
     private static final String RESPONSE_BY_ONE_LETTER = """
             {
@@ -77,6 +77,6 @@ public class DummyDailyReportClovaResponseDto extends CreateResponse {
     }
 
     public static CreateResponse createDummy(int letterCount) {
-        return new DummyDailyReportClovaResponseDto(letterCount);
+        return new DummyDailyReportClovaResponse(letterCount);
     }
 }

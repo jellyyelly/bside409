@@ -1,19 +1,21 @@
 package site.radio.report.daily.dto;
 
-import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.domain.LetterAnalysis;
-import lombok.*;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.domain.LetterAnalysis;
 
 @Getter
 @Builder
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class DailyReportResponseDto {
+public class DailyReportResponse {
 
     private final LocalDate date;
     private final List<LetterAnalysisResult> letterAnalyses;
@@ -33,7 +35,8 @@ public class DailyReportResponseDto {
         public static LetterAnalysisResult of(LetterAnalysis letterAnalysis) {
             return LetterAnalysisResult.builder()
                     .letterId(letterAnalysis.getLetter().getId())
-                    .coreEmotions(letterAnalysis.getCoreEmotions().stream().map(Enum::name).collect(Collectors.toList()))
+                    .coreEmotions(
+                            letterAnalysis.getCoreEmotions().stream().map(Enum::name).collect(Collectors.toList()))
                     .sensitiveEmotions(letterAnalysis.getSensitiveEmotions())
                     .topic(letterAnalysis.getTopic())
                     .createdAt(letterAnalysis.getCreatedAt())
@@ -41,8 +44,8 @@ public class DailyReportResponseDto {
         }
     }
 
-    public static DailyReportResponseDto of(DailyReport dailyReport, List<LetterAnalysis> letterAnalyses) {
-        return DailyReportResponseDto.builder()
+    public static DailyReportResponse of(DailyReport dailyReport, List<LetterAnalysis> letterAnalyses) {
+        return DailyReportResponse.builder()
                 .date(dailyReport.getTargetDate())
                 .letterAnalyses(letterAnalyses.stream().map(LetterAnalysisResult::of).collect(Collectors.toList()))
                 .dailyCoreEmotion(dailyReport.getCoreEmotion().name())

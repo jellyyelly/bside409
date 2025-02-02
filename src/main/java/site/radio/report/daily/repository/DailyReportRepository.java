@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.dto.DailyReportStaticsDto;
+import site.radio.report.daily.dto.DailyReportStatics;
 
 @Repository
 public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> {
@@ -43,7 +43,7 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> 
             FROM LetterAnalysis la
             WHERE la.letter.user.id = :userId AND la.dailyReport.targetDate IN :dateRange
             """)
-    DailyReportStaticsDto findStaticsBy(UUID userId, List<LocalDate> dateRange);
+    DailyReportStatics findStaticsBy(UUID userId, List<LocalDate> dateRange);
 
     @Query("""
             SELECT d

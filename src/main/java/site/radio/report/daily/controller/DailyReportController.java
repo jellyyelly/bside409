@@ -1,8 +1,5 @@
 package site.radio.report.daily.controller;
 
-import site.radio.report.daily.dto.DailyReportDto;
-import site.radio.report.daily.dto.DailyReportResponseDto;
-import site.radio.report.daily.service.DailyReportService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -15,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import site.radio.report.daily.dto.DailyReportCreateRequest;
+import site.radio.report.daily.dto.DailyReportResponse;
+import site.radio.report.daily.service.DailyReportService;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,13 +24,13 @@ public class DailyReportController {
 
     @PostMapping("/api/v1/reports/daily")
     @ResponseStatus(HttpStatus.CREATED)
-    public DailyReportResponseDto createDailyReport(@Valid @RequestBody DailyReportDto.CreateRequest dto) {
+    public DailyReportResponse createDailyReport(@Valid @RequestBody DailyReportCreateRequest dto) {
         return dailyReportService.createDailyReport(UUID.fromString(dto.getUserId()), dto.getTargetDate());
     }
 
     @GetMapping("/api/v1/reports/daily/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public DailyReportResponseDto getDailyReport(
+    public DailyReportResponse getDailyReport(
             @PathVariable("userId") UUID userId, @RequestParam("targetDate") LocalDate targetDate
     ) {
         return dailyReportService.getDailyReport(userId, targetDate);

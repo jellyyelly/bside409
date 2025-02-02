@@ -16,7 +16,7 @@ import site.radio.reply.domain.Letter;
 import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.dto.DailyReportStaticsDto;
+import site.radio.report.daily.dto.DailyReportStatics;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.Role;
 import site.radio.user.domain.User;
@@ -109,7 +109,7 @@ class DailyReportRepositoryTest {
         letterRepository.saveAll(List.of(letter1, letter2, letter3, letter4, letter5));
 
         // when
-        DailyReportStaticsDto staticsDto = dailyReportRepository.findStaticsBy(user.getId(),
+        DailyReportStatics staticsDto = dailyReportRepository.findStaticsBy(user.getId(),
                 IntStream.rangeClosed(0, 6)
                         .mapToObj(start::plusDays)
                         .toList());

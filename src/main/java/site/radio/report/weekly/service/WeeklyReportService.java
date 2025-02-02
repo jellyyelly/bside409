@@ -16,7 +16,7 @@ import site.radio.error.WeeklyReportAlreadyExistsException;
 import site.radio.error.WeeklyReportNotFoundException;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.dto.DailyStaticsOneWeekResponseDto;
+import site.radio.report.daily.dto.DailyStaticsOneWeekResponse;
 import site.radio.report.daily.repository.DailyReportRepository;
 import site.radio.report.daily.service.DailyReportService;
 import site.radio.report.weekly.domain.WeeklyReport;
@@ -48,7 +48,7 @@ public class WeeklyReportService {
         dailyReportService.createDailyReportsBy(userId, startDate, startDate.plusDays(6));
 
         // startDate 로 부터 1주일 날짜 구하기
-        DailyStaticsOneWeekResponseDto dailyStaticsDto = dailyReportService.findDailyStaticsInOneWeek(userId,
+        DailyStaticsOneWeekResponse dailyStaticsDto = dailyReportService.findDailyStaticsInOneWeek(userId,
                 createOneWeek(startDate));
 
         // 1주일에 해당하는 일일 분석들 찾기

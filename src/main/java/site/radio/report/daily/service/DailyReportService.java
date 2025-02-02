@@ -24,9 +24,9 @@ import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
 import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.dto.ClovaDailyAnalysisResult;
-import site.radio.report.daily.dto.DailyReportResponseDto;
-import site.radio.report.daily.dto.DailyReportStaticsDto;
-import site.radio.report.daily.dto.DailyStaticsOneWeekResponseDto;
+import site.radio.report.daily.dto.DailyReportResponse;
+import site.radio.report.daily.dto.DailyReportStatics;
+import site.radio.report.daily.dto.DailyStaticsOneWeekResponse;
 import site.radio.report.daily.repository.DailyReportRepository;
 import site.radio.report.daily.repository.LetterAnalysisRepository;
 
@@ -58,7 +58,7 @@ public class DailyReportService {
      * @return 생성된 일일 리포트에 대한 응답 DTO
      */
     @NamedLock(lockName = "createdDailyReport", timeout = 0, keyFields = {"userId"})
-    public DailyReportResponseDto createDailyReport(UUID userId, LocalDate targetDate) {
+    public DailyReportResponse createDailyReport(UUID userId, LocalDate targetDate) {
         if (dailyReportRepository.existsByUserAndTargetDate(userId, targetDate)) {
             throw new DailyReportAlreadyExistsException("Duplicate daily report exists.");
         }
@@ -78,17 +78,17 @@ public class DailyReportService {
         List<LetterAnalysis> letterAnalyses = buildLetterAnalyses(letters, dailyReport, clovaDailyAnalysisResult);
         letterAnalysisRepository.saveAll(letterAnalyses);
 
-        return DailyReportResponseDto.of(dailyReport, letterAnalyses);
+        return DailyReportResponse.of(dailyReport, letterAnalyses);
     }
 
-    public DailyReportResponseDto getDailyReport(UUID userId, LocalDate targetDate) {
+    public DailyReportResponse getDailyReport(UUID userId, LocalDate targetDate) {
         DailyReport dailyReport = dailyReportRepository.findByUserAndTargetDate(userId, targetDate)
                 .orElseThrow(
                         () -> new DailyReportNotFoundException("Daily Report not found. targetDate: " + targetDate));
 
         List<LetterAnalysis> letterAnalyses = letterAnalysisRepository.findByDailyReportId(dailyReport.getId());
 
-        return DailyReportResponseDto.of(dailyReport, letterAnalyses);
+        return DailyReportResponse.of(dailyReport, letterAnalyses);
     }
 
     public void createDailyReportsBy(UUID userId, LocalDate startDate, LocalDate endDate) {
@@ -144,11 +144,11 @@ public class DailyReportService {
         letterAnalysisRepository.saveAll(letterAnalyses);
     }
 
-    public DailyStaticsOneWeekResponseDto findDailyStaticsInOneWeek(UUID userId, List<LocalDate> oneWeekDates) {
+    public DailyStaticsOneWeekResponse findDailyStaticsInOneWeek(UUID userId, List<LocalDate> oneWeekDates) {
         List<DailyReport> dailyReports = dailyReportRepository.findByTargetDateIn(userId, oneWeekDates);
-        DailyReportStaticsDto dto = dailyReportRepository.findStaticsBy(userId, oneWeekDates);
+        DailyReportStatics dto = dailyReportRepository.findStaticsBy(userId, oneWeekDates);
 
-        return DailyStaticsOneWeekResponseDto.of(dailyReports, dto);
+        return DailyStaticsOneWeekResponse.of(dailyReports, dto);
     }
 
     /**

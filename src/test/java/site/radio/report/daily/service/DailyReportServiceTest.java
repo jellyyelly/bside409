@@ -31,7 +31,7 @@ import site.radio.common.cache.CacheGroup;
 import site.radio.reply.domain.Letter;
 import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.dto.DailyReportResponseDto;
+import site.radio.report.daily.dto.DailyReportResponse;
 import site.radio.report.daily.repository.DailyReportRepository;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.Role;
@@ -72,7 +72,7 @@ class DailyReportServiceTest {
         createLetterByLocalDate(user, localDate);
 
         // when
-        DailyReportResponseDto dailyReport = dailyReportService.createDailyReport(user.getId(), localDate);
+        DailyReportResponse dailyReport = dailyReportService.createDailyReport(user.getId(), localDate);
 
         // then
         assertThat(dailyReport.getDate()).isEqualTo(localDate);
