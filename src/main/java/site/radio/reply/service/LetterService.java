@@ -1,6 +1,5 @@
 package site.radio.reply.service;
 
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -64,14 +63,5 @@ public class LetterService {
 
     public void deleteLetter(UUID letterId) {
         letterRepository.deleteById(letterId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<LetterResponseDto> getLatestLetters() {
-        List<Letter> top10Letters = letterRepository.findTop10ByPublishedIsTrueOrderByCreatedAtDesc();
-
-        return top10Letters.stream()
-                .map(LetterResponseDto::fromLetter)
-                .toList();
     }
 }

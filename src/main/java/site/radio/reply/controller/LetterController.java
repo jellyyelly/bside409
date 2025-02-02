@@ -44,12 +44,4 @@ public class LetterController {
     public void deleteLetter(@PathVariable("letterId") String letterId) {
         letterService.deleteLetter(UUID.fromString(letterId));
     }
-
-    // FIXME: 커뮤니티 => 구현 나중에
-    @Operation(summary = "유저들이 작성한 편지 목록을 반환하는 API", description = "최근 작성된 편지 10개를 제공합니다.")
-    @GetMapping(value = "/latest", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.OK)
-    public List<LetterResponseDto> getTopNLettersForCommunity() {
-        return letterService.getLatestLetters();
-    }
 }
