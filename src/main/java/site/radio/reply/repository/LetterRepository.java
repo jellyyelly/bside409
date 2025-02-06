@@ -65,31 +65,33 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
             """)
     List<Letter> findByCreatedAtDesc(UUID userId, LocalDateTime start, LocalDateTime end);
 
-    // FIXME: 리팩토링 떄 사용할 예정
     @Query(value = """
-                WITH report_dates AS ( /* 데일리 리포트가 생성된 날짜들 */
-                    SELECT DISTINCT DATE(l2.created_at) AS report_date
-                    FROM letter l2
-                    WHERE l2.user_id = :userId
-                      AND l2.daily_report_id IS NOT NULL
-                      AND l2.created_at >= :startDate
-                      AND l2.created_at < :endDate
-                ),
-                ranked_letters AS ( /* 데일리 리포트가 생성된 날짜와 left join 후 데일리 리포트 생성일이 없는 편지들을 최신순으로 선택 */
-                    SELECT l1.letter_id, l1.created_at, l1.like_f, l1.like_t, l1.message, l1.preference, l1.published,
-                        l1.daily_report_id, l1.user_id,
-                        ROW_NUMBER() OVER (PARTITION BY DATE(l1.created_at) ORDER BY l1.created_at DESC) AS seq
-                    FROM letter l1
-                    LEFT JOIN report_dates dr ON DATE(l1.created_at) = dr.report_date
-                    WHERE l1.user_id = :userId
-                        AND dr.report_date IS NULL -- 데일리 리포트 생성일이 없는 경우
-                        AND l1.created_at >= :startDate
-                        AND l1.created_at <= :endDate
-                )
-                /* 최신순으로 정렬된 ranked_letters 에서 최신 3개까지만 선택 */
-                SELECT letter_id, created_at, like_f, like_t, message, preference, published, daily_report_id, user_id
-                FROM ranked_letters
-                WHERE seq <= 3
+            SELECT letter_id, user_id, created_at, message, preference, published, like_f, like_t
+            FROM (
+              SELECT *, ROW_NUMBER() OVER (PARTITION BY DATE(created_at) ORDER BY created_at DESC) AS row_num
+              FROM letter
+              WHERE user_id = :userId
+                AND created_at BETWEEN :startDate AND :endDate
+                AND DATE(created_at) NOT IN (
+                  SELECT DISTINCT DATE(l.created_at)
+                  FROM letter l
+                  JOIN letter_analysis la ON l.letter_id = la.letter_id
+                  WHERE l.user_id = :userId
+                    AND l.created_at BETWEEN :startDate AND :endDate
+              )) AS analyzable_letters
+            WHERE analyzable_letters.row_num <= 3
+            ORDER BY created_at
             """, nativeQuery = true)
-    List<Letter> findLettersForDailyReportCreation(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+    List<Letter> findAnalyzableLetters(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("""
+            SELECT COUNT(CASE WHEN l.published = TRUE THEN 1 END) AS publishedCount,
+                   COUNT(CASE WHEN l.published = FALSE THEN 1 END) AS unpublishedCount
+            FROM Letter l
+            JOIN l.user u
+            WHERE l.user.id = :userId
+                AND l.createdAt >= :startDate
+                AND l.createdAt <= :endDate
+            """)
+    LetterStatistics fetchStatistics(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 }
