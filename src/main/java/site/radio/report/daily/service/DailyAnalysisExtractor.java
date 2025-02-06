@@ -7,7 +7,7 @@ import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.dto.DailyAnalysisResult;
 import site.radio.report.daily.dto.DailyAnalysisResult.EmotionAnalysis;
 
-public class DailyReportExtractor {
+public class DailyAnalysisExtractor {
 
     public static DailyAnalysisResult extract(CreateResponse response) {
         ObjectMapper objectMapper = new ObjectMapper();
