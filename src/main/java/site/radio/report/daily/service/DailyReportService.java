@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +17,9 @@ import site.radio.error.DailyReportAlreadyExistsException;
 import site.radio.error.DailyReportNotFoundException;
 import site.radio.error.LetterNotFoundException;
 import site.radio.reply.domain.Letter;
+import site.radio.reply.dto.DailyLetters;
 import site.radio.reply.repository.LetterRepository;
-import site.radio.report.daily.domain.CoreEmotion;
+import site.radio.reply.service.LetterService;
 import site.radio.report.daily.domain.DailyReport;
 import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.dto.DailyAnalysisResult;
@@ -44,6 +43,8 @@ public class DailyReportService {
     private final LetterRepository letterRepository;
     private final LetterAnalysisRepository letterAnalysisRepository;
     private final ClovaService clovaService;
+    private final LetterService letterService;
+    private final LetterAnalysisService letterAnalysisService;
 
     /**
      * <ol> 이 메서드는 순차대로 아래 작업을 수행합니다.
@@ -59,62 +60,51 @@ public class DailyReportService {
      */
     @NamedLock(lockName = "createdDailyReport", timeout = 0, keyFields = {"userId"})
     public DailyReportResponse createDailyReport(UUID userId, LocalDate targetDate) {
-        if (dailyReportRepository.existsByUserAndTargetDate(userId, targetDate)) {
+        if (dailyReportRepository.existsByUserAndTargetDate(userId, targetDate)) {  //TODO: LetterAnalysis repo로 메서드 이동
             throw new DailyReportAlreadyExistsException("Duplicate daily report exists.");
         }
-        List<Letter> letters = findRecentLetters(userId, targetDate);
+        // 하루치 분석 가능 편지 조회
+        DailyLetters dailyLetters = letterService.findAnalyzableLetters(userId, targetDate);
 
-        // 클로바에 분석 요청
-        CreateResponse clovaResponse = requestClovaAnalysis(letters);
+        // 편지 분석 생성 요청
+        DailyAnalysisResult dailyAnalysis = letterAnalysisService.createDailyAnalysis(dailyLetters);
 
-        // 클로바 응답 파싱
-        ClovaDailyAnalysisResult clovaDailyAnalysisResult = DailyReportExtractor.extract(clovaResponse);
+        // 트랜잭션 안에서 편지 분석, 데일리 리포트 저장 요청
+        List<LetterAnalysis> letterAnalyses = letterAnalysisService.saveAnalysisAndDailyReport(dailyLetters,
+                dailyAnalysis);
 
-        // 데일리 리포트 저장
-        DailyReport dailyReport = buildDailyReport(targetDate, clovaDailyAnalysisResult);
-        dailyReportRepository.save(dailyReport);
-
-        // 감정 분석 저장
-        List<LetterAnalysis> letterAnalyses = buildLetterAnalyses(letters, dailyReport, clovaDailyAnalysisResult);
-        letterAnalysisRepository.saveAll(letterAnalyses);
-
-        return DailyReportResponse.of(dailyReport, letterAnalyses);
+        return letterAnalyses.stream()
+                .findAny()
+                .map(letterAnalysis -> DailyReportResponse.of(letterAnalysis.getDailyReport(), letterAnalyses))
+                .orElseThrow(() -> new DailyReportNotFoundException("데일리 리포트를 찾지 못했습니다. 날짜: " + targetDate));
     }
 
     public DailyReportResponse getDailyReport(UUID userId, LocalDate targetDate) {
-        DailyReport dailyReport = dailyReportRepository.findByUserAndTargetDate(userId, targetDate)
-                .orElseThrow(
-                        () -> new DailyReportNotFoundException("Daily Report not found. targetDate: " + targetDate));
+        List<LetterAnalysis> letterAnalyses = letterAnalysisRepository.findLetterAnalysesByTargetDateAt(userId,
+                targetDate);
 
-        List<LetterAnalysis> letterAnalyses = letterAnalysisRepository.findByDailyReportId(dailyReport.getId());
-
-        return DailyReportResponse.of(dailyReport, letterAnalyses);
+        return letterAnalyses.stream()
+                .findAny()
+                .map(letterAnalysis -> DailyReportResponse.of(letterAnalysis.getDailyReport(), letterAnalyses))
+                .orElseThrow(() -> new DailyReportNotFoundException("데일리 리포트를 찾지 못했습니다. 날짜: " + targetDate));
     }
 
     public void createDailyReportsBy(UUID userId, LocalDate startDate, LocalDate endDate) {
-        // 주간분석을 요청한 기간 동안 사용자가 작성한 편지들 찾기
-        List<Letter> userLettersByLatest = letterRepository.findByCreatedAtDesc(userId,
-                startDate.atStartOfDay(),
-                LocalDateTime.of(endDate, LocalTime.MAX));
+        // 편지 서비스에게 `분석 가능한 편지들` 찾기 위임
+        List<DailyLetters> analyzableLetters = letterService.findAnalyzableLettersInRange(userId, startDate, endDate);
 
-        // 날짜별로 편지들을 3개씩 묶기
-        Map<LocalDate, List<Letter>> latestLettersByDate = userLettersByLatest.stream()
-                .collect(Collectors.groupingBy(
-                        letter -> letter.getCreatedAt().toLocalDate()));
+        for (DailyLetters dailyLetters : analyzableLetters) {
+            // 외부 API 호출
+            CreateResponse createResponse = clovaService.sendWithPromptTemplate(promptTemplate,
+                    dailyLetters.getMessages());
 
-        // 이미 일일 분석이 생성된 날짜는 제거
-        latestLettersByDate.values().removeIf(
-                letters -> letters.stream().anyMatch(letter -> letter.getDailyReport() != null)
-        );
+            // 응답 결과로부터 하루치 분석 추출
+            DailyAnalysisResult analysisResult = DailyAnalysisExtractor.extract(createResponse);
 
-        // 일일 분석을 생성하려는 편지들을 날짜당 3개로 제한
-        Map<LocalDate, List<Letter>> latestThreeLettersByDate = latestLettersByDate.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Entry::getKey,
-                        entry -> entry.getValue().stream()
-                                .limit(3)
-                                .collect(Collectors.toList())
-                ));
+            // 하루치 분석으로부터 편지 분석, 데일리 리포트 엔티티 저장
+            letterAnalysisService.saveAnalysisAndDailyReport(dailyLetters, analysisResult);
+        }
+    }
 
         // 편지 3개에 대한 분석을 Clova에게 요청해서 받은 결과물들
         Map<ClovaDailyAnalysisResult, List<Letter>> lettersByAnalysisResult = latestThreeLettersByDate.values().stream()
