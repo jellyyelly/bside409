@@ -36,11 +36,11 @@ public class LetterAnalysis extends BaseTimeEntity {
     @Column(name = "letter_analysis_id")
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "letter_id", unique = true)
     private Letter letter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "daily_report_id")
     private DailyReport dailyReport;
 
