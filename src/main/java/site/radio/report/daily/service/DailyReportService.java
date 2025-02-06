@@ -23,7 +23,7 @@ import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
 import site.radio.report.daily.domain.LetterAnalysis;
-import site.radio.report.daily.dto.ClovaDailyAnalysisResult;
+import site.radio.report.daily.dto.DailyAnalysisResult;
 import site.radio.report.daily.dto.DailyReportResponse;
 import site.radio.report.daily.dto.DailyReportStatics;
 import site.radio.report.daily.dto.DailyStaticsOneWeekResponse;
@@ -197,29 +197,27 @@ public class DailyReportService {
                 .replaceAll("'", "&apos;");
     }
 
-    private DailyReport buildDailyReport(LocalDate targetDate, ClovaDailyAnalysisResult clovaDailyAnalysisResult) {
+    private DailyReport buildDailyReport(LocalDate targetDate, DailyAnalysisResult dailyAnalysisResult) {
         return DailyReport.builder()
                 .targetDate(targetDate)
-                .coreEmotion(CoreEmotion.findOrNeutral(clovaDailyAnalysisResult.getDailyCoreEmotion()))
-                .description(clovaDailyAnalysisResult.getDescription())
+                .coreEmotion(dailyAnalysisResult.getDailyCoreEmotion())
+                .description(dailyAnalysisResult.getDescription())
                 .build();
     }
 
     private List<LetterAnalysis> buildLetterAnalyses(List<Letter> letters,
                                                      DailyReport dailyReport,
-                                                     ClovaDailyAnalysisResult clovaDailyAnalysisResult) {
-        return clovaDailyAnalysisResult.getLetterAnalyses().stream()
+                                                     DailyAnalysisResult dailyAnalysisResult) {
+        return dailyAnalysisResult.getEmotionAnalyses().stream()
                 .map(analysis -> {
-                    int index = clovaDailyAnalysisResult.getLetterAnalyses().indexOf(analysis);
+                    int index = dailyAnalysisResult.getEmotionAnalyses().indexOf(analysis);
                     Letter letter = letters.get(index); // 순서대로 letter 매핑
 
                     return LetterAnalysis.builder()
                             .letter(letter)
                             .dailyReport(dailyReport)
                             .topic(analysis.getTopic())
-                            .coreEmotions(analysis.getCoreEmotions().stream()
-                                    .map(CoreEmotion::findOrNeutral)
-                                    .collect(Collectors.toList()))
+                            .coreEmotions(analysis.getCoreEmotions())
                             .sensitiveEmotions(analysis.getSensitiveEmotions())
                             .build();
                 })

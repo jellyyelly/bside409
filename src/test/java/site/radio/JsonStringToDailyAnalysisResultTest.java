@@ -1,12 +1,16 @@
 package site.radio;
 
+import static site.radio.report.daily.domain.CoreEmotion.기쁨;
+import static site.radio.report.daily.domain.CoreEmotion.분노;
+import static site.radio.report.daily.domain.CoreEmotion.중립;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import site.radio.report.daily.dto.ClovaDailyAnalysisResult;
+import site.radio.report.daily.dto.DailyAnalysisResult;
 
-class JsonStringToClovaDailyAnalysisResultTest {
+class JsonStringToDailyAnalysisResultTest {
 
     @Test
     void readValue_validResponse_success() throws JsonProcessingException {
@@ -33,24 +37,24 @@ class JsonStringToClovaDailyAnalysisResultTest {
                 """;
 
         // When
-        ClovaDailyAnalysisResult clovaDailyAnalysisResult = objectMapper.readValue(validResponseJson,
-                ClovaDailyAnalysisResult.class);
+        DailyAnalysisResult dailyAnalysisResult = objectMapper.readValue(validResponseJson,
+                DailyAnalysisResult.class);
 
         // Then
-        Assertions.assertThat(clovaDailyAnalysisResult).isNotNull();
-        Assertions.assertThat(clovaDailyAnalysisResult.getDailyCoreEmotion()).isEqualTo("슬픔");
-        Assertions.assertThat(clovaDailyAnalysisResult.getLetterAnalyses()).hasSize(2);
+        Assertions.assertThat(dailyAnalysisResult).isNotNull();
+        Assertions.assertThat(dailyAnalysisResult.getDailyCoreEmotion()).isEqualTo("슬픔");
+        Assertions.assertThat(dailyAnalysisResult.getEmotionAnalyses()).hasSize(2);
 
         // 첫 번째 letterAnalyses 검증
-        Assertions.assertThat(clovaDailyAnalysisResult.getLetterAnalyses().get(0).getCoreEmotions())
-                .containsExactlyInAnyOrder("슬픔", "분노");
-        Assertions.assertThat(clovaDailyAnalysisResult.getLetterAnalyses().get(0).getTopic())
+        Assertions.assertThat(dailyAnalysisResult.getEmotionAnalyses().get(0).getCoreEmotions())
+                .containsExactlyInAnyOrder(기쁨, 분노);
+        Assertions.assertThat(dailyAnalysisResult.getEmotionAnalyses().get(0).getTopic())
                 .isEqualTo("과도한 학업에의 부담");
 
         // 두 번째 letterAnalyses 검증
-        Assertions.assertThat(clovaDailyAnalysisResult.getLetterAnalyses().get(1).getCoreEmotions())
-                .containsExactly("중립");
-        Assertions.assertThat(clovaDailyAnalysisResult.getLetterAnalyses().get(1).getTopic())
+        Assertions.assertThat(dailyAnalysisResult.getEmotionAnalyses().get(1).getCoreEmotions())
+                .containsExactly(중립);
+        Assertions.assertThat(dailyAnalysisResult.getEmotionAnalyses().get(1).getTopic())
                 .isEqualTo("식사 기록");
     }
 }
