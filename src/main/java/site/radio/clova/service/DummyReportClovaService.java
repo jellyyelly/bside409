@@ -1,12 +1,15 @@
 package site.radio.clova.service;
 
-import site.radio.clova.client.ClovaFeignClient;
-import site.radio.clova.dailyReport.DummyDailyReportClovaResponseDto;
-import site.radio.clova.dto.ClovaResponseDto;
-import site.radio.clova.weekly.ClovaWeeklyReportRequestDto;
+import java.util.concurrent.CompletableFuture;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import site.radio.clova.client.ClovaFeignClient;
+import site.radio.clova.client.ClovaKeyProperties;
+import site.radio.clova.dto.CreateResponse;
+import site.radio.clova.prompt.PromptTemplate;
+import site.radio.clova.report.ClovaWeeklyReportRequestDto;
+import site.radio.report.daily.dto.DummyDailyReportClovaResponse;
 
 /**
  * Clova API 를 사용하지 않고, 더미 데이터를 응답하는 더미 서비스입니다. 테스트 목적으로 생성되었으며, 운영 환경에서 사용할 수 없습니다.
@@ -16,8 +19,8 @@ import org.springframework.stereotype.Service;
 @EnableConfigurationProperties(ClovaKeyProperties.class)
 public class DummyReportClovaService extends ClovaService {
 
-    public DummyReportClovaService(ClovaKeyProperties properties, ClovaFeignClient client) {
-        super(properties, client);
+    public DummyReportClovaService(ClovaFeignClient client) {
+        super(client);
     }
 
     /**
@@ -27,8 +30,19 @@ public class DummyReportClovaService extends ClovaService {
      * @return {@code null}을 반환합니다.
      */
     @Override
-    public ClovaResponseDto send(String message) {
+    public CreateResponse send(String message) {
         return null;
+    }
+
+    @Override
+    public CreateResponse sendWithPromptTemplate(PromptTemplate promptTemplate, String userMessage) {
+        return super.sendWithPromptTemplate(promptTemplate, userMessage);
+    }
+
+    @Override
+    public CompletableFuture<CreateResponse> sendAsyncWithPromptTemplate(PromptTemplate promptTemplate,
+                                                                         String userMessage) {
+        return super.sendAsyncWithPromptTemplate(promptTemplate, userMessage);
     }
 
     /**
@@ -38,14 +52,14 @@ public class DummyReportClovaService extends ClovaService {
      * @return 더미 Clova 응답
      */
     @Override
-    public ClovaResponseDto sendDailyReportRequest(String message) {
+    public CreateResponse sendDailyReportRequest(String message) {
         int lettersCount = message.split(message.split("\n", 2)[0]).length - 1;
 
-        return DummyDailyReportClovaResponseDto.createDummy(lettersCount);
+        return DummyDailyReportClovaResponse.createDummy(lettersCount);
     }
 
     @Override
-    public ClovaResponseDto sendWeeklyReportRequest(ClovaWeeklyReportRequestDto dto) {
+    public CreateResponse sendWeeklyReportRequest(ClovaWeeklyReportRequestDto dto) {
         return client.sendToClova("", "", "", dto);
     }
 }
