@@ -1,6 +1,8 @@
 package site.radio.report.daily.service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.dto.DailyAnalysisResult;
 import site.radio.report.daily.dto.DailyAnalysisResult.EmotionAnalysis;
 import site.radio.report.daily.repository.LetterAnalysisRepository;
+import site.radio.report.weekly.dto.WeeklyLetterAnalyses;
 
 @Slf4j
 @Service
@@ -22,7 +25,7 @@ public class LetterAnalysisService {
 
     private final ClovaService clovaService;
     private final DailyReportPromptTemplate promptTemplate;
-    private final LetterAnalysisRepository letterAnalysisRepository;
+    private final LetterAnalysisRepository analysisRepository;
 
     /**
      * '하루치 편지들'에 대한 감정 분석 생성 요청을 클로바 서비스에게 위입합니다.
@@ -66,7 +69,7 @@ public class LetterAnalysisService {
                         .build())
                 .toList();
 
-        return letterAnalysisRepository.saveAll(letterAnalyses);
+        return analysisRepository.saveAll(letterAnalyses);
     }
 
     public List<DailyAnalysisResult> createAsyncDailyAnalyses(List<DailyLetters> dailyLetters) {
@@ -87,5 +90,12 @@ public class LetterAnalysisService {
         for (int i = 0; i < results.size(); i++) {
             saveAnalysisAndDailyReport(dailyLetters.get(i), results.get(i));
         }
+    }
+
+    @Transactional(readOnly = true)
+    public WeeklyLetterAnalyses findLetterAnalysesInRange(UUID userId, LocalDate startDate, LocalDate endDate) {
+        List<LetterAnalysis> analyses = analysisRepository.findLetterAnalysesByDateRangeIn(userId, startDate, endDate);
+
+        return WeeklyLetterAnalyses.of(analyses, startDate, endDate);
     }
 }
