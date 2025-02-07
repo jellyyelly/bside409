@@ -11,6 +11,7 @@ import site.radio.clova.dto.CreateResponse;
 import site.radio.clova.service.ClovaService;
 import site.radio.error.WeeklyReportAlreadyExistsException;
 import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.repository.DailyReportRepository;
 import site.radio.report.util.CustomDateUtils;
 import site.radio.report.weekly.domain.WeeklyReport;
 import site.radio.report.weekly.dto.WeeklyLetterAnalyses;
@@ -20,13 +21,13 @@ import site.radio.report.weekly.repository.WeeklyReportRepository;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class WeeklyReportService {
 
     private final WeeklyReportPromptTemplate promptTemplate;
     private final ClovaService clovaService;
     private final WeeklyReportRepository weeklyReportRepository;
+    private final DailyReportRepository dailyReportRepository;
 
 
     /**
@@ -44,6 +45,7 @@ public class WeeklyReportService {
         return createResponse.getResultMessage();
     }
 
+    @Transactional
     public WeeklyReport save(WeeklyLetterAnalyses weeklyLetterAnalyses, String cheerUpMessage) {
         // 위클리 리포트 persist
         LocalDate startDate = weeklyLetterAnalyses.getStartDate();
@@ -58,11 +60,17 @@ public class WeeklyReportService {
                 .unpublishedCount(weeklyLetterAnalyses.getUnpublishedCount())
                 .build();
 
+        weeklyReport = weeklyReportRepository.saveAndFlush(weeklyReport);
+
         // 연관 관계 매핑
         List<DailyReport> dailyReports = weeklyLetterAnalyses.getDailyReports();
-        dailyReports.forEach(dailyReport -> dailyReport.setWeeklyReport(weeklyReport));
+        List<UUID> dailyReportIds = dailyReports.stream()
+                .map(DailyReport::getId)
+                .toList();
 
-        return weeklyReportRepository.save(weeklyReport);
+        dailyReportRepository.bulkUpdateWeeklyReport(weeklyReport, dailyReportIds);
+
+        return weeklyReport;
     }
 
     @Transactional(readOnly = true)
