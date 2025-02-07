@@ -28,11 +28,12 @@ public interface WeeklyReportRepository extends JpaRepository<WeeklyReport, UUID
     @Query(value = """
             SELECT
                 d.weeklyReport.id AS weeklyReportId,
-                la.letter.createdAt AS letterCreatedAt
-            FROM LetterAnalysis la
-            LEFT JOIN la.dailyReport d
-            WHERE la.letter.createdAt >= :startDate AND la.letter.createdAt <= :endDate
-                AND la.letter.user.id = :userId
+                l.createdAt AS letterCreatedAt
+            FROM Letter l
+            LEFT JOIN LetterAnalysis la ON l.id = la.letter.id
+            LEFT JOIN la.dailyReport d ON la.dailyReport.id = d.id
+            WHERE l.user.id = :userId
+                AND l.createdAt BETWEEN :startDate AND :endDate
             """)
     List<WeeklyReportIdProjection> findWeeklyReportIdByDateRange(UUID userId, LocalDateTime startDate,
                                                                  LocalDateTime endDate);
