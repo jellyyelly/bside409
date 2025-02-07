@@ -26,16 +26,16 @@ public interface DailyReportRepository extends JpaRepository<DailyReport, UUID> 
     @Query("UPDATE DailyReport d SET d.weeklyReport = :weeklyReport WHERE d IN :dailyReportIds")
     void bulkUpdateWeeklyReport(WeeklyReport weeklyReport, List<UUID> dailyReportIds);
 
-    @Query(value = """
-                SELECT
-                    la.dailyReport.id AS dailyReportId,
-                    d.coreEmotion AS coreEmotion,
-                    la.letter.createdAt AS letterCreatedAt
-                FROM LetterAnalysis la
-                LEFT JOIN la.dailyReport d
-                WHERE la.letter.user.id = :userId
-                    AND la.letter.createdAt >= :startDate
-                    AND la.letter.createdAt <= :endDate
+    @Query("""
+            SELECT
+                d.id AS dailyReportId,
+                d.coreEmotion AS coreEmotion,
+                l.createdAt AS letterCreatedAt
+            FROM Letter l
+            LEFT JOIN LetterAnalysis la ON l.id = la.letter.id
+            LEFT JOIN la.dailyReport d ON la.dailyReport.id = d.id
+            WHERE l.user.id = :userId
+                AND l.createdAt BETWEEN :startDate AND :endDate
             """)
     List<DailyReportIdProjection> findDailyReportIdByDateRange(UUID userId, LocalDateTime startDate,
                                                                LocalDateTime endDate);
