@@ -50,9 +50,6 @@ class DailyReportServiceTest {
     private DailyReportRepository dailyReportRepository;
 
     @Autowired
-    private NamedLockDailyReportFacade namedLockDailyReportFacade;
-
-    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -96,57 +93,6 @@ class DailyReportServiceTest {
             try {
                 startLatch.await();
                 dailyReportService.createDailyReport(user.getId(), localDate); // 데일리 리포트 생성 요청
-            } catch (Throwable t) {
-                exceptions.add(t);
-            } finally {
-                endLatch.countDown();
-            }
-        };
-
-        // when
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(task);
-        }
-
-        startLatch.countDown();
-        endLatch.await(60, TimeUnit.SECONDS);
-
-        // then
-        executorService.shutdown();
-        long deadlockCount = exceptions.stream()
-                .filter(exception -> exception.getMessage().contains("Deadlock"))
-                .count();
-
-        List<DailyReport> dailyReports = dailyReportRepository.findByTargetDateIn(user.getId(), List.of(localDate));
-
-        assertAll(
-                "데일리 리포트는 하나만 생성된다.",
-                () -> assertThat(exceptions).hasSize(threadCount - 1),
-                () -> assertThat(deadlockCount).isEqualTo(0L),
-                () -> assertThat(dailyReports).hasSize(1)
-        );
-    }
-
-    @DisplayName("데일리 리포트 생성 요청이 동시에 여러 번 오더라도 한 번만 생성된다.")
-    @Test
-    void testConcurrentDailyReportCreationWithFacade()
-            throws InterruptedException, NoSuchFieldException, IllegalAccessException {
-        // given
-        User user = createTestUser();
-        LocalDate localDate = LocalDate.of(2024, 10, 1);
-        createLetterByLocalDate(user, localDate);
-
-        int threadCount = 100;
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch endLatch = new CountDownLatch(threadCount);
-
-        List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>());
-
-        Runnable task = () -> {
-            try {
-                startLatch.await();
-                namedLockDailyReportFacade.createDailyReportWithNamedLock(user.getId(), localDate); // 데일리 리포트 생성 요청
             } catch (Throwable t) {
                 exceptions.add(t);
             } finally {
