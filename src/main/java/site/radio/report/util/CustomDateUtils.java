@@ -1,4 +1,4 @@
-package site.radio.report.retrieve.service;
+package site.radio.report.util;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -8,21 +8,23 @@ import java.time.temporal.WeekFields;
 public class CustomDateUtils {
 
     private static final WeekFields KOREA = WeekFields.of(DayOfWeek.MONDAY, 4);
-    private static final String WEEK_OF_MONTH_FORMAT = "%d년 %d월 %d주차";
+    private static final String WEEK_OF_MONTH_FORMAT_WITH_YEAR = "%d년 %d월 %d주차";
+    private static final String WEEK_OF_MONTH_FORMAT_WITHOUT_YEAR = "%d월 %d주차";
 
     /**
-     * 주어진 날짜를 `%d년 %d월 %d주차`로 변환하는 함수
+     * 주어진 날짜를 `yyyy년 MM월 W주차` 또는 `MM월 W주차` 형식으로 변환하는 함수
      *
-     * @param localDate 주어진 날짜
-     * @return `%d년 %d월 %d주차`로 변환된 문자열
+     * @param localDate   주어진 날짜
+     * @param includeYear 연도 포함 여부
+     * @return 변환된 문자열
      */
-    public static String getWeekOfMonth(LocalDate localDate) {
+    public static String getWeekOfMonth(LocalDate localDate, boolean includeYear) {
         int weekOfMonth = localDate.get(KOREA.weekOfMonth());
 
         // 2개 달에 껴있는 주일 때 => 이전 달의 마지막 주차로 계산
         if (weekOfMonth == 0) {
             LocalDate lastDayOfLastMonth = localDate.with(TemporalAdjusters.firstDayOfMonth()).minusDays(1);
-            return getWeekOfMonth(lastDayOfLastMonth);
+            return getWeekOfMonth(lastDayOfLastMonth, includeYear);
         }
 
         // 주어진 날짜가 속한 달의 마지막 날
@@ -31,10 +33,17 @@ public class CustomDateUtils {
         // 주어진 날짜가 마지막 주차이면서, 해당 달의 마지막 요일이 목요일 이전이라면 => 다음달 1주차로 계산
         if (isLastWeekOfMonth(localDate) && isBeforeThursDay(lastDayOfMonth)) {
             LocalDate firstDayOfNextMonth = lastDayOfMonth.plusDays(1); // 다음 달 1주차로 넘기기
-            return getWeekOfMonth(firstDayOfNextMonth);
+            return getWeekOfMonth(firstDayOfNextMonth, includeYear);
         }
 
-        return String.format(WEEK_OF_MONTH_FORMAT, localDate.getYear(), localDate.getMonthValue(), weekOfMonth);
+        return includeYear
+                ? String.format(WEEK_OF_MONTH_FORMAT_WITH_YEAR, localDate.getYear(), localDate.getMonthValue(),
+                weekOfMonth)
+                : String.format(WEEK_OF_MONTH_FORMAT_WITHOUT_YEAR, localDate.getMonthValue(), weekOfMonth);
+    }
+
+    public static int getWeekOfWeekBasedYear(LocalDate localDate) {
+        return localDate.get(KOREA.weekOfWeekBasedYear());
     }
 
     /**
