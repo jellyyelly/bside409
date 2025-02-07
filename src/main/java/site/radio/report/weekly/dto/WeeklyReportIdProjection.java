@@ -1,4 +1,4 @@
-package site.radio.report.retrieve.dto;
+package site.radio.report.weekly.dto;
 
 import java.time.LocalDateTime;
 

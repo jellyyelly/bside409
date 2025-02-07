@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import site.radio.report.daily.domain.CoreEmotion;
+import site.radio.report.daily.dto.DailyReportIdProjection;
 
 @Getter
 @RequiredArgsConstructor
@@ -18,14 +19,14 @@ public class DailyReportStatusResponse {
 
     private final boolean available;
 
-    public static DailyReportStatusResponse create(LocalDate date, List<DailyReportDto> letters) {
+    public static DailyReportStatusResponse create(LocalDate date, List<DailyReportIdProjection> letters) {
         boolean analyzed = letters.stream()
                 .anyMatch(letter -> letter.getDailyReportId() != null);
 
         CoreEmotion coreEmotion = letters.stream()
                 .filter(letter -> letter.getDailyReportId() != null)
                 .findAny()
-                .map(DailyReportDto::getCoreEmotion)
+                .map(DailyReportIdProjection::getCoreEmotion)
                 .orElse(null);
 
         return new DailyReportStatusResponse(date, coreEmotion, !analyzed);

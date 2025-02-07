@@ -7,35 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.radio.reply.domain.Letter;
-import site.radio.report.retrieve.dto.DailyReportDto;
-import site.radio.report.retrieve.dto.WeeklyReportDto;
 
 @Repository
 public interface LetterRepository extends JpaRepository<Letter, UUID> {
-
-    @Query(value = """
-                SELECT
-                    la.dailyReport.id AS dailyReportId,
-                    d.coreEmotion AS coreEmotion,
-                    la.createdAt AS createdAt
-                FROM LetterAnalysis la
-                LEFT JOIN la.dailyReport d
-                WHERE la.letter.user.id = :userId
-                    AND la.createdAt >= :startDate
-                    AND la.createdAt <= :endDate
-            """)
-    List<DailyReportDto> findDailyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
-
-    @Query(value = """
-                SELECT
-                    d.weeklyReport.id AS weeklyReportId,
-                    la.createdAt AS letterCreatedAt
-                FROM LetterAnalysis la
-                LEFT JOIN la.dailyReport d
-                WHERE la.createdAt >= :startDate AND la.createdAt <= :endDate
-                    AND la.letter.user.id = :userId
-            """)
-    List<WeeklyReportDto> findWeeklyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
     @Query(value = """
             SELECT letter_id, user_id, created_at, message, preference, published, like_f, like_t

@@ -1,4 +1,4 @@
-package site.radio.report.retrieve.dto;
+package site.radio.report.daily.dto;
 
 import java.time.LocalDateTime;
 import site.radio.report.daily.domain.CoreEmotion;

@@ -9,6 +9,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import site.radio.report.weekly.dto.WeeklyReportIdProjection;
 
 @Getter
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class WeeklyReportStatusResponse {
     private final boolean analyzed;
 
     public static WeeklyReportStatusResponse create(int weekOfYear, List<LocalDate> dates,
-                                                    List<WeeklyReportDto> reports) {
+                                                    List<WeeklyReportIdProjection> reports) {
         boolean analyzed = reports.stream()
                 .anyMatch(report -> report.getWeeklyReportId() != null);
 
