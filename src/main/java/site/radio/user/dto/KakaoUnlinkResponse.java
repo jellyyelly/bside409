@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class KakaoUnlinkResponseDto {
+public class KakaoUnlinkResponse {
 
     private Long id;
 }

@@ -1,14 +1,14 @@
 package site.radio.user.dto;
 
-import site.radio.auth.KakaoUserInfo;
-import site.radio.user.domain.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import site.radio.auth.KakaoUserInfo;
+import site.radio.user.domain.User;
 
 @Getter
 @RequiredArgsConstructor
-public class KakaoUnlinkRequestDto {
+public class KakaoUnlinkRequest {
 
     public static final int KAKAO_ID_POSITION = 0;
 
@@ -18,8 +18,8 @@ public class KakaoUnlinkRequestDto {
     @JsonProperty(value = "target_id")
     private final String targetId;
 
-    public static KakaoUnlinkRequestDto of(User user) {
-        return new KakaoUnlinkRequestDto(extractKakaoIdByUsername(user.getUsername()));
+    public static KakaoUnlinkRequest of(User user) {
+        return new KakaoUnlinkRequest(extractKakaoIdByUsername(user.getUsername()));
     }
 
     public static String extractKakaoIdByUsername(String username) {

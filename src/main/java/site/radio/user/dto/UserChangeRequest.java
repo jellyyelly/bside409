@@ -1,16 +1,16 @@
 package site.radio.user.dto;
 
-import site.radio.user.domain.Preference;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.hibernate.validator.constraints.Length;
+import site.radio.user.domain.Preference;
 
 @Schema(description = "유저 정보 변경 요청 DTO")
 @Getter
 @AllArgsConstructor
-public class UserChangeRequestDto {
+public class UserChangeRequest {
 
     @Schema(description = "변경을 희망하는 닉네임")
     @Length(min = 1, max = 12)

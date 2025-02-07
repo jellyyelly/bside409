@@ -1,7 +1,5 @@
 package site.radio.user.domain;
 
-import site.radio.common.BaseTimeEntity;
-import site.radio.user.dto.UserDeleteRequestDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,6 +16,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.common.BaseTimeEntity;
+import site.radio.user.dto.UserDeleteRequest;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -50,11 +50,12 @@ public class WithdrawalUser extends BaseTimeEntity {
         this.detailReason = detailReason;
     }
 
-    public static WithdrawalUser toWithdrawalUser(User user, UserDeleteRequestDto deleteRequestDto) {
+    public static WithdrawalUser toWithdrawalUser(User user, UserDeleteRequest deleteRequestDto) {
         return WithdrawalUser.builder()
                 .user(user)
                 .reason(deleteRequestDto.getWithdrawalReason())
-                .detailReason(deleteRequestDto.getDetailReason().isPresent() ? deleteRequestDto.getDetailReason().get() : null)
+                .detailReason(deleteRequestDto.getDetailReason().isPresent() ? deleteRequestDto.getDetailReason().get()
+                        : null)
                 .build();
     }
 }

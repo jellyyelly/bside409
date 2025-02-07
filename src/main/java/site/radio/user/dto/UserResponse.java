@@ -1,20 +1,20 @@
 package site.radio.user.dto;
 
-import site.radio.user.domain.Preference;
-import site.radio.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.user.domain.Preference;
+import site.radio.user.domain.User;
 
 @Schema(description = "유저 정보 응답 DTO")
 @Getter
 @Builder(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class UserResponseDto {
+public class UserResponse {
 
     @Schema(description = "유저 아이디", example = "123e4567-e89b-12d3-a456-426655440000")
     private String userId;
@@ -43,8 +43,8 @@ public class UserResponseDto {
     @Schema(description = "최초 로그인 여부", examples = {"true", "false"})
     private boolean isFirstLogin;
 
-    public static UserResponseDto of(User user) {
-        return UserResponseDto.builder()
+    public static UserResponse of(User user) {
+        return UserResponse.builder()
                 .userId(user.getId().toString())
                 .nickname(user.getNickname())
                 .email(user.getEmail())
