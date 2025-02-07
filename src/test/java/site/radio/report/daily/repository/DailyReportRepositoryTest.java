@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,6 @@ import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
 import site.radio.report.daily.domain.LetterAnalysis;
-import site.radio.report.daily.dto.DailyReportStatics;
 import site.radio.report.weekly.dto.WeeklyLetterAnalyses;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.Role;
@@ -145,14 +143,13 @@ class DailyReportRepositoryTest {
         letterAnalysisRepository.saveAll(List.of(letterAnalysis1, letterAnalysis2, letterAnalysis3));
 
         // when
-        DailyReportStatics staticsDto = dailyReportRepository.findStaticsBy(user.getId(),
-                IntStream.rangeClosed(0, 6)
-                        .mapToObj(start::plusDays)
-                        .toList());
+        List<LetterAnalysis> analyses = letterAnalysisRepository.findLetterAnalysesByDateRangeIn(user.getId(), start,
+                start.plusDays(6));
+        WeeklyLetterAnalyses weeklyLetterAnalyses = WeeklyLetterAnalyses.of(analyses, start, start.plusDays(6));
 
         // then
-        assertThat(staticsDto.getPublishedCount()).isEqualTo(3);
-        assertThat(staticsDto.getUnPublishedCount()).isEqualTo(1);
+        assertThat(weeklyLetterAnalyses.getPublishedCount()).isEqualTo(3);
+        assertThat(weeklyLetterAnalyses.getUnpublishedCount()).isEqualTo(1);
     }
 
     private Letter createPublishedLetter(User user) {

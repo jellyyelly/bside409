@@ -31,8 +31,9 @@ import site.radio.common.cache.CacheGroup;
 import site.radio.reply.domain.Letter;
 import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.dto.DailyReportResponse;
-import site.radio.report.daily.repository.DailyReportRepository;
+import site.radio.report.daily.repository.LetterAnalysisRepository;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.Role;
 import site.radio.user.domain.User;
@@ -47,13 +48,13 @@ class DailyReportServiceTest {
     private DailyReportService dailyReportService;
 
     @Autowired
-    private DailyReportRepository dailyReportRepository;
-
-    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private LetterRepository letterRepository;
+
+    @Autowired
+    private LetterAnalysisRepository letterAnalysisRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -115,7 +116,12 @@ class DailyReportServiceTest {
                 .filter(exception -> exception.getMessage().contains("Deadlock"))
                 .count();
 
-        List<DailyReport> dailyReports = dailyReportRepository.findByTargetDateIn(user.getId(), List.of(localDate));
+        List<LetterAnalysis> analyses = letterAnalysisRepository.findLetterAnalysesByDateRangeIn(user.getId(),
+                localDate, localDate);
+
+        List<DailyReport> dailyReports = analyses.stream()
+                .map(LetterAnalysis::getDailyReport)
+                .toList();
 
         assertAll(
                 "데일리 리포트는 하나만 생성된다.",

@@ -17,11 +17,4 @@ public interface ReplyRepository extends JpaRepository<Reply, UUID>, ReplyQueryd
 
     @Query("SELECT r FROM Reply r WHERE r.letter.published = TRUE ORDER BY r.createdAt DESC")
     List<Reply> findTopNReplies(Pageable pageable);
-
-    /**
-     * @deprecated 이 메서드는 더 이상 사용되지 않습니다.
-     */
-    @Deprecated
-    @Query("SELECT r FROM Reply r where r.letter.user.id = :userId ORDER BY r.createdAt DESC")
-    List<Reply> findTopNRepliesByUserId(UUID userId, Pageable pageable);
 }
