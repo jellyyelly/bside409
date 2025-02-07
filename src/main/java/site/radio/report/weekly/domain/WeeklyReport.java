@@ -1,6 +1,5 @@
 package site.radio.report.weekly.domain;
 
-import site.radio.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.common.BaseTimeEntity;
 
 @Getter
 @Entity
@@ -40,7 +40,7 @@ public class WeeklyReport extends BaseTimeEntity {
     @Column(name = "unpublished_count", nullable = false)
     private int unpublishedCount;
 
-    @Column(name = "cheer_up", nullable = false, length = 500)
+    @Column(name = "cheer_up", nullable = false, length = 1000)
     private String cheerUp;
 
     @Builder
