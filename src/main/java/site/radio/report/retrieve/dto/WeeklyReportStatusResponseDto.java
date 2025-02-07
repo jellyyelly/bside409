@@ -1,6 +1,6 @@
 package site.radio.report.retrieve.dto;
 
-import static site.radio.report.retrieve.service.CustomDateUtils.getWeekOfMonth;
+import static site.radio.report.util.CustomDateUtils.getWeekOfMonth;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.DayOfWeek;
@@ -39,7 +39,7 @@ public class WeeklyReportStatusResponseDto {
         LocalDate endDate = dates.get(0).with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
         return new WeeklyReportStatusResponseDto(
-                weekOfYear, getWeekOfMonth(startDate), startDate, endDate, reports.size(), !analyzed, analyzed
+                weekOfYear, getWeekOfMonth(startDate, true), startDate, endDate, reports.size(), !analyzed, analyzed
         );
     }
 
@@ -48,7 +48,7 @@ public class WeeklyReportStatusResponseDto {
         LocalDate endDate = dates.get(0).with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
         return new WeeklyReportStatusResponseDto(
-                weekOfYear, getWeekOfMonth(startDate), startDate, endDate, 0, false, false
+                weekOfYear, getWeekOfMonth(startDate, true), startDate, endDate, 0, false, false
         );
     }
 }

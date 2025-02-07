@@ -36,6 +36,7 @@ import site.radio.report.daily.domain.DailyReport;
 import site.radio.report.daily.repository.DailyReportRepository;
 import site.radio.report.retrieve.dto.DailyReportStatusResponseDto;
 import site.radio.report.retrieve.dto.WeeklyReportStatusResponseDto;
+import site.radio.report.util.CustomDateUtils;
 import site.radio.report.weekly.domain.WeeklyReport;
 import site.radio.report.weekly.repository.WeeklyReportRepository;
 import site.radio.user.domain.Preference;
@@ -409,7 +410,7 @@ class ReportStatusRetrieveServiceTest {
         int weekOfYearByISO = targetDate.get(WeekFields.ISO.weekOfWeekBasedYear());
         int weekOfYearByKorea = targetDate.get(korea.weekOfWeekBasedYear());
 
-        String weekOfMonth = CustomDateUtils.getWeekOfMonth(targetDate);
+        String weekOfMonth = CustomDateUtils.getWeekOfMonth(targetDate, true);
 
         // then
         assertThat(weekOfYearByISO).isEqualTo(expectedWeekOfYear);
