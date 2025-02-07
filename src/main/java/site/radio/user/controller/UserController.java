@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import site.radio.limiter.RateLimitService;
-import site.radio.limiter.UserUsageResponseDto;
+import site.radio.limiter.UserUsageResponse;
 import site.radio.user.dto.UserChangeRequest;
 import site.radio.user.dto.UserDeleteRequest;
 import site.radio.user.dto.UserDeleteResponse;
@@ -45,7 +45,7 @@ public class UserController {
 
     @Operation(summary = "유저 사용량 조회 API", description = "유저의 편지 쓰기 횟수 및 초기화까지 남은 시간을 조회합니다.")
     @GetMapping("/{userId}/usage")
-    public UserUsageResponseDto getUserUsage(@PathVariable("userId") String userId) {
+    public UserUsageResponse getUserUsage(@PathVariable("userId") String userId) {
         return limitService.getUsageByUserId(userId);
     }
 

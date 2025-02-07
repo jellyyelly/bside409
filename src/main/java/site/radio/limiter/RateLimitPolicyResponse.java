@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
-public class RateLimitPolicyResponseDto {
+public class RateLimitPolicyResponse {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final Long limit;
@@ -15,7 +15,7 @@ public class RateLimitPolicyResponseDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final Long ttl;
 
-    public static RateLimitPolicyResponseDto of(Long limit, Long ttl) {
-        return new RateLimitPolicyResponseDto(limit, ttl);
+    public static RateLimitPolicyResponse of(Long limit, Long ttl) {
+        return new RateLimitPolicyResponse(limit, ttl);
     }
 }

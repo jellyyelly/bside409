@@ -13,7 +13,7 @@ public class RateLimitController {
     private final RateLimitService rateLimitService;
 
     @GetMapping
-    public RateLimitPolicyResponseDto getRateLimitPolicy() {
+    public RateLimitPolicyResponse getRateLimitPolicy() {
         return rateLimitService.retrieveCurrentPolicy();
     }
 }

@@ -8,7 +8,7 @@ import lombok.Getter;
 @Schema(description = "유저의 사용량 정보를 포함하는 DTO")
 @Getter
 @AllArgsConstructor
-public class UserUsageResponseDto {
+public class UserUsageResponse {
 
     @Schema(description = "유저의 UUID")
     private UUID userId;
@@ -19,7 +19,7 @@ public class UserUsageResponseDto {
     @Schema(description = "초기화까지 남은 시간")
     private Long ttl;
 
-    public static UserUsageResponseDto of(String userId, String usage, Long ttl) {
-        return new UserUsageResponseDto(UUID.fromString(userId), usage, ttl);
+    public static UserUsageResponse of(String userId, String usage, Long ttl) {
+        return new UserUsageResponse(UUID.fromString(userId), usage, ttl);
     }
 }
