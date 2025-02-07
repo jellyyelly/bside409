@@ -1,13 +1,13 @@
 package site.radio.report.retrieve.dto;
 
-import site.radio.report.daily.domain.CoreEmotion;
 import java.time.LocalDateTime;
+import site.radio.report.daily.domain.CoreEmotion;
 
-public interface DailyReportDto {
+public interface DailyReportIdProjection {
 
     String getDailyReportId();
 
     CoreEmotion getCoreEmotion();
 
-    LocalDateTime getCreatedAt();
+    LocalDateTime getLetterCreatedAt();
 }
