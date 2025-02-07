@@ -108,7 +108,7 @@ public class ReportStatusRetrieveService {
     }
 
     private LocalDateTime convertToMax(LocalDate localDate) {
-        return LocalDateTime.of(localDate, LocalTime.MAX);
+        return LocalDateTime.of(localDate, LocalTime.MAX.minusNanos(999));
     }
 
     /**
