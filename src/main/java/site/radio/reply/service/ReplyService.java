@@ -6,7 +6,6 @@ import java.time.Year;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,14 +13,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import site.radio.clova.dto.CreateResponse;
-import site.radio.clova.service.ClovaService;
 import site.radio.error.LetterNotFoundException;
 import site.radio.error.UserNotFoundException;
-import site.radio.reply.repository.ReplyRepository;
-import site.radio.reply.dto.ReplyResponseDto;
-import site.radio.reply.dto.TwoTypeMessage;
-import site.radio.reply.dto.TwoTypeMessageExtractor;
 import site.radio.reply.domain.Letter;
 import site.radio.reply.domain.Reply;
 import site.radio.reply.dto.ReplyResponse;
@@ -34,8 +27,6 @@ import site.radio.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class ReplyService {
 
-    private final ReplyPromptTemplate replyPromptTemplate;
-    private final ClovaService clovaService;
     private final LetterService letterService;
     private final UserRepository userRepository;
     private final ReplyRepository replyRepository;
@@ -49,29 +40,11 @@ public class ReplyService {
      * @param letterResponse 유저의 편지 정보가 저장되어있는 dto
      * @return 저장한 답장에 대한 응답 dto
      */
-    @CacheEvict(
-            cacheNames = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
-            key = "#letterResponse.userId.toString()"
-    )
-    public ReplyResponseDto makeAndSaveReply(LetterResponseDto letterResponse) {
-        CreateResponse clovaResponse = clovaService.sendWithPromptTemplate(replyPromptTemplate,
-                letterResponse.getContent());
-        TwoTypeMessage twoTypeMessage = TwoTypeMessageExtractor.extract(clovaResponse.getResultMessage());
-
-        Letter letter = letterService.findLetter(letterResponse.getLetterId());
-
-        Reply reply = Reply.builder()
-                .letter(letter)
-                .messageForF(twoTypeMessage.getMessageForF())
-                .messageForT(twoTypeMessage.getMessageForT())
-                .build();
-
-        Reply savedReply = replyRepository.save(reply);
-
-        return ReplyResponseDto.of(savedReply);
-    }
-
-    public ReplyResponseDto save(Letter letter, TwoTypeMessage twoTypeMessage) {
+//    @CacheEvict(
+//            cacheNames = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
+//            key = "#letterResponse.userId.toString()"
+//    )
+    public ReplyResponse save(Letter letter, TwoTypeMessage twoTypeMessage) {
         Reply reply = Reply.builder()
                 .letter(letter)
                 .messageForT(twoTypeMessage.getMessageForT())
@@ -80,25 +53,25 @@ public class ReplyService {
 
         Reply savedReply = replyRepository.save(reply);
 
-        return ReplyResponseDto.of(savedReply);
+        return ReplyResponse.of(savedReply);
     }
 
     @Transactional(readOnly = true)
-    public ReplyResponseDto findReply(UUID letterId) {
+    public ReplyResponse findReply(UUID letterId) {
         Letter letter = letterService.findLetter(letterId);
         Reply reply = replyRepository.findByLetter(letter)
                 .orElseThrow(() -> new LetterNotFoundException("letter not found: " + letterId.toString()));
 
-        return ReplyResponseDto.of(reply);
+        return ReplyResponse.of(reply);
     }
 
     @Transactional(readOnly = true)
-    public List<ReplyResponseDto> findTopNLetterAndReply(Integer size) {
+    public List<ReplyResponse> findTopNLetterAndReply(Integer size) {
         size = correctSize(size);
         PageRequest pageable = PageRequest.of(0, size, Sort.by(Direction.DESC, "createdAt"));
         List<Reply> replies = replyRepository.findTopNReplies(pageable);
         return replies.stream()
-                .map(ReplyResponseDto::of)
+                .map(ReplyResponse::of)
                 .toList();
     }
 
@@ -106,27 +79,27 @@ public class ReplyService {
      * @deprecated 이 메서드는 더 이상 사용되지 않습니다. `{@link Pageable}`을 인수로 받는 `{@code findMyLetterAndReply}`를 사용하세요.
      */
     @Deprecated
-    public List<ReplyResponseDto> findMyLetterAndReply(UUID userId, Integer size) {
+    public List<ReplyResponse> findMyLetterAndReply(UUID userId, Integer size) {
         validateUserId(userId);
         size = correctSize(size);
 
         PageRequest pageable = PageRequest.of(0, size, Sort.by(Direction.DESC, "createdAt"));
         List<Reply> replies = replyRepository.findTopNRepliesByUserId(userId, pageable);
         return replies.stream()
-                .map(reply -> ReplyResponseDto.ofByUserId(reply, userId))
+                .map(reply -> ReplyResponse.ofByUserId(reply, userId))
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public Page<ReplyResponseDto> findMyLetterAndReply(UUID userId, int year, Boolean published, Pageable pageable) {
+    public Page<ReplyResponse> findMyLetterAndReply(UUID userId, int year, Boolean published, Pageable pageable) {
         validateUserId(userId);
 
         LocalDateTime startOfYear = Year.of(year).atDay(1).atStartOfDay();
-        LocalDateTime endOfYear = Year.of(year).atMonth(12).atDay(31).atTime(LocalTime.MAX);
+        LocalDateTime endOfYear = Year.of(year).atMonth(12).atDay(31).atTime(LocalTime.MAX.minusNanos(999));
 
         Page<Reply> replies = replyRepository.findLatestRepliesBy(userId, startOfYear, endOfYear, published, pageable);
 
-        return replies.map(reply -> ReplyResponseDto.ofByUserId(reply, userId));
+        return replies.map(reply -> ReplyResponse.ofByUserId(reply, userId));
     }
 
     private void validateUserId(UUID userId) {
