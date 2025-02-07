@@ -1,7 +1,6 @@
 package site.radio.report.daily.domain;
 
-import site.radio.common.BaseTimeEntity;
-import site.radio.report.weekly.domain.WeeklyReport;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,6 +19,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import site.radio.common.BaseTimeEntity;
+import site.radio.report.weekly.domain.WeeklyReport;
 
 @Getter
 @Entity
@@ -33,7 +34,7 @@ public class DailyReport extends BaseTimeEntity {
     private UUID id;
 
     @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "weekly_report_id")
     private WeeklyReport weeklyReport;
 
