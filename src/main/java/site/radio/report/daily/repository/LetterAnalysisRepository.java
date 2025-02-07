@@ -12,12 +12,6 @@ import site.radio.report.daily.domain.LetterAnalysis;
 public interface LetterAnalysisRepository extends JpaRepository<LetterAnalysis, Long> {
 
     @Query("""
-            SELECT la FROM LetterAnalysis la
-            WHERE la.dailyReport.id = :dailyReportId
-            """)
-    List<LetterAnalysis> findByDailyReportId(UUID dailyReportId);
-
-    @Query("""
             SELECT la
             FROM LetterAnalysis la
             JOIN FETCH la.dailyReport d
