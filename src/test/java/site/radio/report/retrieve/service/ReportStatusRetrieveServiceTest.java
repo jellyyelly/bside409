@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,9 @@ import site.radio.reply.domain.Letter;
 import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.repository.DailyReportRepository;
+import site.radio.report.daily.repository.LetterAnalysisRepository;
 import site.radio.report.retrieve.dto.DailyReportStatusResponseDto;
 import site.radio.report.retrieve.dto.WeeklyReportStatusResponseDto;
 import site.radio.report.util.CustomDateUtils;
@@ -65,6 +68,9 @@ class ReportStatusRetrieveServiceTest {
     private LetterRepository letterRepository;
 
     @Autowired
+    private LetterAnalysisRepository letterAnalysisRepository;
+
+    @Autowired
     private CacheManager cacheManager;
 
     @Transactional
@@ -94,7 +100,15 @@ class ReportStatusRetrieveServiceTest {
         // 2024-11-30: 일일 분석된 편지 1건
         Letter analyzedLetter = createLetterByLocalDate(user, LocalDate.of(2024, 11, 30));
         DailyReport dailyReport = createTestDailyReport(LocalDate.of(2024, 11, 30));
-        analyzedLetter.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis = LetterAnalysis.builder()
+                .letter(analyzedLetter)
+                .dailyReport(dailyReport)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis);
 
         // 2024-12-29: 2건
         createLetterByLocalDate(user, LocalDate.of(2024, 12, 29));
@@ -220,7 +234,15 @@ class ReportStatusRetrieveServiceTest {
         /* 2024-11-30: 편지 1건 (일일 분석 수행 o, 주간 분석 수행 o) */
         Letter analyzedLetter = createLetterByLocalDate(user, LocalDate.of(2024, 11, 30));
         DailyReport dailyReport = createTestDailyReport(LocalDate.of(2024, 11, 30));
-        analyzedLetter.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis = LetterAnalysis.builder()
+                .letter(analyzedLetter)
+                .dailyReport(dailyReport)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis);
 
         WeeklyReport weeklyReport = WeeklyReport.builder()
                 .cheerUp("test")
@@ -238,7 +260,15 @@ class ReportStatusRetrieveServiceTest {
         /* 2024-12-30: 편지 1건 (일일 분석 수행 o, 주간 분석 수행 x) */
         Letter analyzedLetter3 = createLetterByLocalDate(user, LocalDate.of(2024, 12, 30));
         DailyReport dailyReport3 = createTestDailyReport(LocalDate.of(2024, 12, 29));
-        analyzedLetter3.setDailyReport(dailyReport3);
+        LetterAnalysis letterAnalysis3 = LetterAnalysis.builder()
+                .letter(analyzedLetter3)
+                .dailyReport(dailyReport3)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis3);
     }
 
     private DailyReport createTestDailyReport(LocalDate targetDate) {
