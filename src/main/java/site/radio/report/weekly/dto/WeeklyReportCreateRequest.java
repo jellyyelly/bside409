@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Schema(description = "주간 분석 생성 DTO")
 @Getter
 @RequiredArgsConstructor
-public class WeeklyReportRequestDto {
+public class WeeklyReportCreateRequest {
 
     @Schema(description = "유저의 아이디", requiredMode = RequiredMode.REQUIRED)
     @NotBlank(message = "유저의 아이디가 존재하지 않습니다.")

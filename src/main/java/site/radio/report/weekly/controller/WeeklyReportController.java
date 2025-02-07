@@ -1,8 +1,5 @@
 package site.radio.report.weekly.controller;
 
-import site.radio.report.weekly.dto.WeeklyReportRequestDto;
-import site.radio.report.weekly.dto.WeeklyReportResponseDto;
-import site.radio.report.weekly.service.WeeklyReportService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -15,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import site.radio.report.weekly.dto.WeeklyReportCreateRequest;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +24,7 @@ public class WeeklyReportController {
     @ResponseStatus(HttpStatus.CREATED)
     public WeeklyReportResponseDto createWeeklyReport(@Valid @RequestBody WeeklyReportRequestDto dto) {
         return weeklyReportService.createWeeklyReport(UUID.fromString(dto.getUserId()), dto.getStartDate());
+    public WeeklyReportResponseDto createWeeklyReport(@Valid @RequestBody WeeklyReportCreateRequest dto) {
     }
 
     @GetMapping("/api/v1/reports/weekly/{userId}")
