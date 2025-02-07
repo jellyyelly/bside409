@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import site.radio.facade.ReplyFacadeService;
 import site.radio.reply.dto.ReplyRequest;
 import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.dto.TwoTypeMessage;
 import site.radio.reply.service.LetterService;
+import site.radio.reply.service.ReplyFacadeService;
 
 @Tag(name = "letter", description = "편지 API")
 @RestController

@@ -1,4 +1,4 @@
-package site.radio.facade;
+package site.radio.reply.service.event;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,6 @@ import site.radio.reply.domain.Letter;
 import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.service.LetterService;
 import site.radio.reply.service.ReplyService;
-import site.radio.reply.service.event.LetterCreationEvent;
 
 @Slf4j
 @RequiredArgsConstructor

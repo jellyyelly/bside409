@@ -1,4 +1,4 @@
-package site.radio.facade;
+package site.radio.reply.service;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +14,6 @@ import site.radio.reply.dto.ReplyRequest;
 import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.dto.TwoTypeMessage;
 import site.radio.reply.dto.TwoTypeMessageExtractor;
-import site.radio.reply.service.LetterService;
-import site.radio.reply.service.ReplyPromptTemplate;
-import site.radio.reply.service.ReplyService;
 
 @Slf4j
 @RequiredArgsConstructor
