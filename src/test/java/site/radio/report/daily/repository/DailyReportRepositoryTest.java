@@ -16,7 +16,9 @@ import site.radio.reply.domain.Letter;
 import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.dto.DailyReportStatics;
+import site.radio.report.weekly.dto.WeeklyLetterAnalyses;
 import site.radio.user.domain.Preference;
 import site.radio.user.domain.Role;
 import site.radio.user.domain.User;
@@ -35,6 +37,9 @@ class DailyReportRepositoryTest {
     @Autowired
     private LetterRepository letterRepository;
 
+    @Autowired
+    private LetterAnalysisRepository letterAnalysisRepository;
+
     @AfterEach
     void tearDown() {
         letterRepository.deleteAllInBatch();
@@ -42,43 +47,59 @@ class DailyReportRepositoryTest {
         userRepository.deleteAllInBatch();
     }
 
-//    @DisplayName("시작날짜로부터 1주일간 생성된 일일 통계들을 찾는다")
-//    @Test
-//    void findCreatedDailyReportsWithinOneWeekByStartDate() {
-//        // given
-//        DailyReport dailyReport1 = DailyReport.builder()
-//                .coreEmotion(CoreEmotion.기쁨)
-//                .targetDate(LocalDate.of(2024, 11, 13))
-//                .description("해석1")
-//                .build();
-//        DailyReport dailyReport2 = DailyReport.builder()
-//                .coreEmotion(CoreEmotion.분노)
-//                .targetDate(LocalDate.of(2024, 11, 15))
-//                .description("해석2")
-//                .build();
-//        DailyReport dailyReport3 = DailyReport.builder()
-//                .coreEmotion(CoreEmotion.놀라움)
-//                .targetDate(LocalDate.of(2024, 11, 18))
-//                .description("해석3")
-//                .build();
-//        dailyReportRepository.saveAll(List.of(dailyReport1, dailyReport2, dailyReport3));
-//
-//        LocalDate startDate = LocalDate.of(2024, 11, 11);
-//
-//        // when
-//        List<LocalDate> oneWeekDates = IntStream.range(0, 7)
-//                .mapToObj(startDate::plusDays)
-//                .collect(Collectors.toList());
-//
-//        List<DailyReport> reports = dailyReportRepository.findByTargetDateIn(oneWeekDates);
-//
-//        // then
-//        assertThat(reports).hasSize(2);
-//        assertThat(reports).extracting("targetDate").containsAnyOf(
-//                LocalDate.of(2024, 11, 13),
-//                LocalDate.of(2024, 11, 15)
-//        );
-//    }
+    @DisplayName("시작날짜로부터 1주일간 생성된 일일 통계들을 찾는다")
+    @Test
+    void findCreatedDailyReportsWithinOneWeekByStartDate() {
+        // given
+        User user = createUser("사용자이름1", "이메일1", "닉네임1");
+
+        DailyReport dailyReport1 = DailyReport.builder()
+                .coreEmotion(CoreEmotion.기쁨)
+                .targetDate(LocalDate.of(2024, 11, 13))
+                .description("해석1")
+                .build();
+        DailyReport dailyReport2 = DailyReport.builder()
+                .coreEmotion(CoreEmotion.분노)
+                .targetDate(LocalDate.of(2024, 11, 15))
+                .description("해석2")
+                .build();
+        DailyReport dailyReport3 = DailyReport.builder()
+                .coreEmotion(CoreEmotion.놀라움)
+                .targetDate(LocalDate.of(2024, 11, 18))
+                .description("해석3")
+                .build();
+
+        Letter letter1 = createPublishedLetter(user);
+        LetterAnalysis letterAnalysis1 = LetterAnalysis.builder()
+                .letter(letter1)
+                .dailyReport(dailyReport1)
+                .build();
+        Letter letter2 = createPublishedLetter(user);
+        LetterAnalysis letterAnalysis2 = LetterAnalysis.builder()
+                .letter(letter2)
+                .dailyReport(dailyReport2)
+                .build();
+        Letter letter3 = createPublishedLetter(user);
+        LetterAnalysis letterAnalysis3 = LetterAnalysis.builder()
+                .letter(letter3)
+                .dailyReport(dailyReport3)
+                .build();
+
+        letterAnalysisRepository.saveAll(List.of(letterAnalysis1, letterAnalysis2, letterAnalysis3));
+
+        LocalDate startDate = LocalDate.of(2024, 11, 11);
+
+        // when
+        List<LetterAnalysis> analyses = letterAnalysisRepository.findLetterAnalysesByDateRangeIn(user.getId(),
+                startDate, startDate.plusDays(6));
+        WeeklyLetterAnalyses weeklyLetterAnalyses = WeeklyLetterAnalyses.of(analyses, startDate, startDate.plusDays(6));
+
+        // then
+        assertThat(weeklyLetterAnalyses.getDailyReports()).hasSize(2);
+        assertThat(weeklyLetterAnalyses.getDailyReports().stream().map(DailyReport::getTargetDate).toList())
+                .containsAnyOf(LocalDate.of(2024, 11, 13), LocalDate.of(2024, 11, 15)
+                );
+    }
 
     @DisplayName("일주일 단위로 일일분석에 사용된 편지의 총 개수를 구한다.")
     @Test
@@ -96,17 +117,32 @@ class DailyReportRepositoryTest {
         dailyReportRepository.save(dailyReport);
 
         Letter letter1 = createPublishedLetter(user);
-        letter1.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis1 = LetterAnalysis.builder()
+                .letter(letter1)
+                .dailyReport(dailyReport)
+                .build();
         Letter letter2 = createPublishedLetter(user);
-        letter2.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis2 = LetterAnalysis.builder()
+                .letter(letter2)
+                .dailyReport(dailyReport)
+                .build();
         Letter letter3 = createPublishedLetter(user);
-        letter3.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis3 = LetterAnalysis.builder()
+                .letter(letter3)
+                .dailyReport(dailyReport)
+                .build();
 
         Letter letter4 = createPublishedLetter(user);
 
         Letter letter5 = createUnPublishedLetter(user);
-        letter5.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis5 = LetterAnalysis.builder()
+                .letter(letter5)
+                .dailyReport(dailyReport)
+                .build();
+
         letterRepository.saveAll(List.of(letter1, letter2, letter3, letter4, letter5));
+        letterAnalysisRepository.save(letterAnalysis5);
+        letterAnalysisRepository.saveAll(List.of(letterAnalysis1, letterAnalysis2, letterAnalysis3));
 
         // when
         DailyReportStatics staticsDto = dailyReportRepository.findStaticsBy(user.getId(),
