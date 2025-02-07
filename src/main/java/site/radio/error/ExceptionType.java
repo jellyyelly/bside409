@@ -10,6 +10,8 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Arrays;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
@@ -53,10 +55,23 @@ public enum ExceptionType {
      * ExceptionType에서 해당 예외 클래스와 매칭되는 타입 검색
      */
     public static ExceptionType from(Exception exception) {
+        // CompletionException, ExecutionException 예외의 경우 언래핑
+        Throwable rootCause = getRootCauseIfWrapped(exception);
+        
         return Arrays.stream(ExceptionType.values())
                 .filter(type -> type.getException() != null && type.getException()
-                        .isAssignableFrom(exception.getClass()))
+                        .isAssignableFrom(rootCause.getClass()))
                 .findFirst()
                 .orElse(ExceptionType.UNHANDLED_EXCEPTION);
+    }
+
+    /**
+     * CompletionException 또는 ExecutionException 으로 감싸진 경우에만 내부 원인을 반환
+     */
+    private static Throwable getRootCauseIfWrapped(Throwable throwable) {
+        if (throwable instanceof CompletionException || throwable instanceof ExecutionException) {
+            return throwable.getCause() != null ? throwable.getCause() : throwable;
+        }
+        return throwable;
     }
 }
