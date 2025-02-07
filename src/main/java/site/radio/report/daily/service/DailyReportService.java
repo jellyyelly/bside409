@@ -36,8 +36,6 @@ import site.radio.report.daily.repository.LetterAnalysisRepository;
 @RequiredArgsConstructor
 public class DailyReportService {
 
-    private static final String LETTER_SEPARATOR = "sharpie-sep";
-
     private final DailyReportPromptTemplate promptTemplate;
     private final DailyReportRepository dailyReportRepository;
     private final LetterRepository letterRepository;
@@ -212,5 +210,16 @@ public class DailyReportService {
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    public void preCreateDailyReport(UUID userId, LocalDate startDate, LocalDate endDate) {
+        // 편지 서비스에게 `분석 가능한 편지들` 찾기 위임
+        List<DailyLetters> analyzableLetters = letterService.findAnalyzableLettersInRange(userId, startDate, endDate);
+
+        // 편지 분석 서비스에게 `편지 분석`, `데일리 리포트` 생성 요청
+        List<DailyAnalysisResult> results = letterAnalysisService.createAsyncDailyAnalyses(analyzableLetters);
+
+        // 편지 분석 서비스에게 트랜잭션 내에서 저장 요청
+        letterAnalysisService.saveAllAnalysesAndDailyReports(analyzableLetters, results);
     }
 }
