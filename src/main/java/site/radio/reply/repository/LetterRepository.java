@@ -3,8 +3,6 @@ package site.radio.reply.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -14,20 +12,6 @@ import site.radio.report.retrieve.dto.WeeklyReportDto;
 
 @Repository
 public interface LetterRepository extends JpaRepository<Letter, UUID> {
-
-    Page<Letter> findLettersByUserId(UUID userId, Pageable pageable);
-
-    List<Letter> findTop10ByPublishedIsTrueOrderByCreatedAtDesc();
-
-    @Query(value = """
-               SELECT l.*
-               FROM letter l
-               JOIN reply r ON l.letter_id = r.letter_id
-               WHERE l.user_id = :userId AND l.created_at BETWEEN :startTime AND :endTime
-               ORDER BY l.created_at DESC
-               LIMIT 3
-            """, nativeQuery = true)
-    List<Letter> find3RecentLetters(UUID userId, LocalDateTime startTime, LocalDateTime endTime);
 
     @Query(value = """
                 SELECT
@@ -42,7 +26,6 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
             """)
     List<DailyReportDto> findDailyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 
-    // TODO: 리팩토링 시 deprecated 예정
     @Query(value = """
                 SELECT
                     d.weeklyReport.id AS weeklyReportId,
@@ -53,17 +36,6 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
                     AND la.letter.user.id = :userId
             """)
     List<WeeklyReportDto> findWeeklyReportIdByDateRange(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
-
-    @Query(value = """
-                SELECT l
-                FROM Letter l
-                JOIN Reply r ON l.id = r.letter.id
-                WHERE l.user.id = :userId AND
-                      l.createdAt >= :start AND
-                      l.createdAt <= :end
-                ORDER BY l.createdAt DESC
-            """)
-    List<Letter> findByCreatedAtDesc(UUID userId, LocalDateTime start, LocalDateTime end);
 
     @Query(value = """
             SELECT letter_id, user_id, created_at, message, preference, published, like_f, like_t
@@ -83,15 +55,4 @@ public interface LetterRepository extends JpaRepository<Letter, UUID> {
             ORDER BY created_at
             """, nativeQuery = true)
     List<Letter> findAnalyzableLetters(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
-
-    @Query("""
-            SELECT COUNT(CASE WHEN l.published = TRUE THEN 1 END) AS publishedCount,
-                   COUNT(CASE WHEN l.published = FALSE THEN 1 END) AS unpublishedCount
-            FROM Letter l
-            JOIN l.user u
-            WHERE l.user.id = :userId
-                AND l.createdAt >= :startDate
-                AND l.createdAt <= :endDate
-            """)
-    LetterStatistics fetchStatistics(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 }
