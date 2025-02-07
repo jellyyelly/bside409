@@ -1,6 +1,7 @@
 package site.radio.report.weekly;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -14,7 +15,9 @@ import site.radio.reply.domain.Letter;
 import site.radio.reply.repository.LetterRepository;
 import site.radio.report.daily.domain.CoreEmotion;
 import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.domain.LetterAnalysis;
 import site.radio.report.daily.repository.DailyReportRepository;
+import site.radio.report.daily.repository.LetterAnalysisRepository;
 import site.radio.report.weekly.domain.WeeklyReport;
 import site.radio.report.weekly.repository.WeeklyReportRepository;
 import site.radio.user.domain.Preference;
@@ -37,6 +40,9 @@ class WeeklyReportRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private LetterAnalysisRepository letterAnalysisRepository;
 
     @DisplayName("이미 주간 분석된 것을 찾을 수 있다.")
     @Test
@@ -70,16 +76,24 @@ class WeeklyReportRepositoryTest {
                 .coreEmotion(CoreEmotion.기쁨)
                 .description("설명1")
                 .build();
-        letter1.setDailyReport(dailyReport);
         dailyReport.setWeeklyReport(weeklyReport);
         dailyReportRepository.save(dailyReport);
 
+        LetterAnalysis letterAnalysis = LetterAnalysis.builder()
+                .letter(letter1)
+                .dailyReport(dailyReport)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis);
+
         // when
-        Optional<WeeklyReport> optWeeklyReport = weeklyReportRepository.findDailyReportBy(
-                user1.getId(), start, end);
+        Optional<Integer> count = weeklyReportRepository.fetchCountBy(user1.getId(), start, end);
 
         // then
-        Assertions.assertThat(optWeeklyReport).isNotEmpty();
+        Assertions.assertThat(count).isNotEmpty();
     }
 
     private Letter createLetter(User user) {
