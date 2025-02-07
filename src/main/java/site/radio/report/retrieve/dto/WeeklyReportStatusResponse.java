@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class WeeklyReportStatusResponseDto {
+public class WeeklyReportStatusResponse {
 
     private final int weekOfYear;
 
@@ -30,24 +30,24 @@ public class WeeklyReportStatusResponseDto {
 
     private final boolean analyzed;
 
-    public static WeeklyReportStatusResponseDto create(int weekOfYear, List<LocalDate> dates,
-                                                       List<WeeklyReportDto> reports) {
+    public static WeeklyReportStatusResponse create(int weekOfYear, List<LocalDate> dates,
+                                                    List<WeeklyReportDto> reports) {
         boolean analyzed = reports.stream()
                 .anyMatch(report -> report.getWeeklyReportId() != null);
 
         LocalDate startDate = dates.get(0).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endDate = dates.get(0).with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        return new WeeklyReportStatusResponseDto(
+        return new WeeklyReportStatusResponse(
                 weekOfYear, getWeekOfMonth(startDate, true), startDate, endDate, reports.size(), !analyzed, analyzed
         );
     }
 
-    public static WeeklyReportStatusResponseDto createFalseStatus(int weekOfYear, List<LocalDate> dates) {
+    public static WeeklyReportStatusResponse createFalseStatus(int weekOfYear, List<LocalDate> dates) {
         LocalDate startDate = dates.get(0).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDate endDate = dates.get(0).with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 
-        return new WeeklyReportStatusResponseDto(
+        return new WeeklyReportStatusResponse(
                 weekOfYear, getWeekOfMonth(startDate, true), startDate, endDate, 0, false, false
         );
     }
