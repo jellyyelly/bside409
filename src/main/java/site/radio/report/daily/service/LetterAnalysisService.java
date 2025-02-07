@@ -1,6 +1,7 @@
 package site.radio.report.daily.service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -66,5 +67,25 @@ public class LetterAnalysisService {
                 .toList();
 
         return letterAnalysisRepository.saveAll(letterAnalyses);
+    }
+
+    public List<DailyAnalysisResult> createAsyncDailyAnalyses(List<DailyLetters> dailyLetters) {
+        List<CompletableFuture<DailyAnalysisResult>> futures = dailyLetters.stream()
+                .map(each -> clovaService.sendAsyncWithPromptTemplate(promptTemplate, each.getMessages())
+                        .thenApply(DailyAnalysisExtractor::extract))
+                .toList();
+
+        CompletableFuture<List<DailyAnalysisResult>> combinedFuture =
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                        .thenApply(v -> futures.stream().map(CompletableFuture::join).toList());
+
+        return combinedFuture.join();
+    }
+
+    @Transactional
+    public void saveAllAnalysesAndDailyReports(List<DailyLetters> dailyLetters, List<DailyAnalysisResult> results) {
+        for (int i = 0; i < results.size(); i++) {
+            saveAnalysisAndDailyReport(dailyLetters.get(i), results.get(i));
+        }
     }
 }
