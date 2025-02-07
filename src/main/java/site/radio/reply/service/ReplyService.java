@@ -31,16 +31,7 @@ public class ReplyService {
     private final UserRepository userRepository;
     private final ReplyRepository replyRepository;
 
-    /**
-     * <ol> 이 메서드는 순차대로 아래 작업을 수행합니다.
-     * <li>유저가 저장한 편지를 기반으로 클로바로부터 답장을 생성합니다.</li>
-     * <li>클로바가 생성한 답장을 유저가 작성한 편지와 연관짓고 저장합니다.</li>
-     * </ol>
-     *
-     * @param letterResponse 유저의 편지 정보가 저장되어있는 dto
-     * @return 저장한 답장에 대한 응답 dto
-     */
-//    @CacheEvict(
+    //    @CacheEvict(
 //            cacheNames = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
 //            key = "#letterResponse.userId.toString()"
 //    )
@@ -72,21 +63,6 @@ public class ReplyService {
         List<Reply> replies = replyRepository.findTopNReplies(pageable);
         return replies.stream()
                 .map(ReplyResponse::of)
-                .toList();
-    }
-
-    /**
-     * @deprecated 이 메서드는 더 이상 사용되지 않습니다. `{@link Pageable}`을 인수로 받는 `{@code findMyLetterAndReply}`를 사용하세요.
-     */
-    @Deprecated
-    public List<ReplyResponse> findMyLetterAndReply(UUID userId, Integer size) {
-        validateUserId(userId);
-        size = correctSize(size);
-
-        PageRequest pageable = PageRequest.of(0, size, Sort.by(Direction.DESC, "createdAt"));
-        List<Reply> replies = replyRepository.findTopNRepliesByUserId(userId, pageable);
-        return replies.stream()
-                .map(reply -> ReplyResponse.ofByUserId(reply, userId))
                 .toList();
     }
 
