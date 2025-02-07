@@ -1,8 +1,5 @@
 package site.radio.report.weekly.dto;
 
-import site.radio.report.daily.domain.CoreEmotion;
-import site.radio.report.weekly.domain.WeeklyReport;
-import site.radio.report.weekly.service.WeeklyDataManager;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
@@ -12,13 +9,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.radio.report.daily.domain.CoreEmotion;
+import site.radio.report.util.CustomDateUtils;
+import site.radio.report.weekly.domain.WeeklyReport;
 
 @Schema(description = "유저의 주간 분석 요청이 성공하면 받는 응답 DTO")
 @Getter
 @Builder(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class WeeklyReportResponseDto {
+public class WeeklyReportResponse {
 
     @Schema(description = "1년 기반의 N주차")
     private int weekOfYear;
@@ -46,12 +46,10 @@ public class WeeklyReportResponseDto {
     @Schema(description = "위로 한 마디")
     private String cheerUp;
 
-    public static WeeklyReportResponseDto from(WeeklyReport weeklyReport, List<CoreEmotion> coreEmotions) {
-        LocalDate target = weeklyReport.getStartDate();
-
-        return WeeklyReportResponseDto.builder()
+    public static WeeklyReportResponse from(WeeklyReport weeklyReport, List<CoreEmotion> coreEmotions) {
+        return WeeklyReportResponse.builder()
                 .weekOfYear(weeklyReport.getWeekOfYear())
-                .weekName(getMonthValue(target) + "월 " + getWeekOfMonth(target) + "주차")
+                .weekName(CustomDateUtils.getWeekOfMonth(weeklyReport.getStartDate(), false))
                 .startDate(weeklyReport.getStartDate())
                 .endDate(weeklyReport.getEndDate())
                 .coreEmotions(coreEmotions)
@@ -61,11 +59,16 @@ public class WeeklyReportResponseDto {
                 .build();
     }
 
-    private static int getMonthValue(LocalDate target) {
-        return new WeeklyDataManager(target).getMonthValue();
-    }
-
-    private static int getWeekOfMonth(LocalDate target) {
-        return new WeeklyDataManager(target).getWeekOfMonth();
+    public static WeeklyReportResponse from(WeeklyReportProjection projection) {
+        return WeeklyReportResponse.builder()
+                .weekOfYear(projection.getWeekOfYear())
+                .weekName(CustomDateUtils.getWeekOfMonth(projection.getStartDate(), false))
+                .startDate(projection.getStartDate())
+                .endDate(projection.getEndDate())
+                .coreEmotions(projection.getCoreEmotions())
+                .published(projection.getPublishedCount())
+                .unPublished(projection.getUnpublishedCount())
+                .cheerUp(projection.getCheerUp())
+                .build();
     }
 }
