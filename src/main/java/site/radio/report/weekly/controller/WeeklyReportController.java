@@ -14,16 +14,20 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import site.radio.report.weekly.dto.WeeklyReportCreateRequest;
 import site.radio.report.weekly.dto.WeeklyReportResponse;
+import site.radio.report.weekly.service.WeeklyReportService;
+import site.radio.report.weekly.service.WeeklyReportServiceFacade;
 
 @RestController
 @RequiredArgsConstructor
 public class WeeklyReportController {
 
     private final WeeklyReportService weeklyReportService;
+    private final WeeklyReportServiceFacade weeklyReportServiceFacade;
 
     @PostMapping("/api/v1/reports/weekly")
     @ResponseStatus(HttpStatus.CREATED)
     public WeeklyReportResponse createWeeklyReport(@Valid @RequestBody WeeklyReportCreateRequest dto) {
+        return weeklyReportServiceFacade.createWeeklyReport(UUID.fromString(dto.getUserId()), dto.getStartDate());
     }
 
     @GetMapping("/api/v1/reports/weekly/{userId}")
