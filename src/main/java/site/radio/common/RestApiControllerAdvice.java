@@ -72,7 +72,7 @@ public class RestApiControllerAdvice extends ResponseEntityExceptionHandler {
     private ResponseEntity<?> createErrorResponse(Exception exception, @Nullable String customMessage) {
         ExceptionType exceptionType = ExceptionType.from(exception);
 
-        log.error("An error occurred: {}", exceptionType.getException());
+        log.error("An error occurred: ", exception);
 
         // 메시지가 제공되면 사용, 없으면 기본 메시지로 처리
         String message = (customMessage != null) ? customMessage : exception.getMessage();
