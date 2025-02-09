@@ -1,4 +1,4 @@
-package site.radio.learning.weekfields;
+package site.radio.report.weekly;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -27,8 +27,8 @@ public class WeeklyTest {
         Arrays.stream(locales)
                 .forEach(locale -> System.out.println(
                         "country: " + locale.getCountry() +
-                                " / " +
-                                "language: " + locale.getLanguage()
+                        " / " +
+                        "language: " + locale.getLanguage()
                 ));
     }
 
@@ -109,11 +109,11 @@ public class WeeklyTest {
         @Override
         public String toString() {
             return "WeeklyDate{" +
-                    "startDate=" + startDate +
-                    ", endDate=" + endDate +
-                    ", month=" + month +
-                    ", weekNumber=" + weekNumber +
-                    '}';
+                   "startDate=" + startDate +
+                   ", endDate=" + endDate +
+                   ", month=" + month +
+                   ", weekNumber=" + weekNumber +
+                   '}';
         }
     }
 }
