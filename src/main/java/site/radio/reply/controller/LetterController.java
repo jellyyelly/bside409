@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import site.radio.reply.dto.ReplyRequest;
 import site.radio.reply.dto.ReplyResponse;
-import site.radio.reply.dto.TwoTypeMessage;
 import site.radio.reply.service.LetterService;
 import site.radio.reply.service.ReplyFacadeService;
 
@@ -33,9 +32,7 @@ public class LetterController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ReplyResponse receiveLetter(@Valid @RequestBody ReplyRequest replyRequest) {
-        TwoTypeMessage twoTypeMessage = replyFacadeService.sendLetterToClova(replyRequest);
-
-        return replyFacadeService.responseReply(replyRequest, twoTypeMessage);
+        return replyFacadeService.responseReply(replyRequest);
     }
 
     @Operation(summary = "편지 삭제 요청 API", description = "요청한 편지 ID에 해당하는 편지를 제거합니다.")

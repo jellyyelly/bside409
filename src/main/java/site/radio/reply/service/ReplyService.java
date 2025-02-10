@@ -6,6 +6,8 @@ import java.time.Year;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,38 +15,58 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.radio.clova.dto.CreateResponse;
+import site.radio.clova.service.ClovaService;
 import site.radio.error.LetterNotFoundException;
 import site.radio.error.UserNotFoundException;
 import site.radio.reply.domain.Letter;
 import site.radio.reply.domain.Reply;
+import site.radio.reply.dto.ReplyRequest;
 import site.radio.reply.dto.ReplyResponse;
 import site.radio.reply.dto.TwoTypeMessage;
+import site.radio.reply.dto.TwoTypeMessageExtractor;
 import site.radio.reply.repository.ReplyRepository;
 import site.radio.user.repository.UserRepository;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class ReplyService {
 
+    private final ReplyPromptTemplate prompt;
+    private final ClovaService clovaService;
     private final LetterService letterService;
     private final UserRepository userRepository;
     private final ReplyRepository replyRepository;
 
-    //    @CacheEvict(
-//            cacheNames = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
-//            key = "#letterResponse.userId.toString()"
-//    )
-    public ReplyResponse save(Letter letter, TwoTypeMessage twoTypeMessage) {
+    public TwoTypeMessage sendLetterToClova(ReplyRequest replyRequest) {
+        // 외부 API 호출
+        CreateResponse clovaResponse = clovaService.sendWithPromptTemplate(prompt, replyRequest.getMessage());
+
+        return TwoTypeMessageExtractor.extract(clovaResponse.getResultMessage());
+    }
+
+    @CacheEvict(
+            cacheNames = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
+            key = "#replyRequest.userId.toString()"
+    )
+    public ReplyResponse save(ReplyRequest replyRequest, TwoTypeMessage twoTypeMessage) {
+        // 트랜잭션 안에서 Letter 저장
+        Letter letter = letterService.save(
+                UUID.fromString(replyRequest.getUserId()),
+                replyRequest.getMessage(),
+                replyRequest.getPreference(),
+                replyRequest.isPublished());
+
+        // Reply - Letter 연관 관계 매핑
         Reply reply = Reply.builder()
                 .letter(letter)
                 .messageForT(twoTypeMessage.getMessageForT())
                 .messageForF(twoTypeMessage.getMessageForF())
                 .build();
 
-        Reply savedReply = replyRepository.save(reply);
-
-        return ReplyResponse.of(savedReply);
+        return ReplyResponse.of(replyRepository.save(reply));
     }
 
     @Transactional(readOnly = true)
