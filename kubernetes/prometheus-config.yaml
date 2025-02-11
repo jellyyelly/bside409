@@ -16,5 +16,6 @@ data:
       - job_name: "spring-actuator"
         metrics_path: "/actuator/prometheus"
         scrape_interval: 1m
-        targets:
-          - 'api-svc:9292'
+        static_configs:
+          - targets:
+              - 'api-svc:9292'
