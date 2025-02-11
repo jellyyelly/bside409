@@ -1,23 +1,9 @@
 package site.radio.report.retrieve.service;
 
-import static site.radio.common.cache.CacheGroup.DAILY_REPORT_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static site.radio.common.cache.CacheGroup.DAILY_REPORT_STATUS;
 
-import site.radio.auth.OAuth2Provider;
-import site.radio.letter.Letter;
-import site.radio.letter.LetterRepository;
-import site.radio.report.daily.domain.CoreEmotion;
-import site.radio.report.daily.domain.DailyReport;
-import site.radio.report.daily.repository.DailyReportRepository;
-import site.radio.report.retrieve.dto.DailyReportStatusResponseDto;
-import site.radio.report.retrieve.dto.WeeklyReportStatusResponseDto;
-import site.radio.report.weekly.domain.WeeklyReport;
-import site.radio.report.weekly.repository.WeeklyReportRepository;
-import site.radio.user.domain.Preference;
-import site.radio.user.domain.Role;
-import site.radio.user.domain.User;
-import site.radio.user.repository.UserRepository;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import jakarta.transaction.Transactional;
@@ -28,6 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +29,23 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import site.radio.auth.OAuth2Provider;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.repository.LetterRepository;
+import site.radio.report.daily.domain.CoreEmotion;
+import site.radio.report.daily.domain.DailyReport;
+import site.radio.report.daily.domain.LetterAnalysis;
+import site.radio.report.daily.repository.DailyReportRepository;
+import site.radio.report.daily.repository.LetterAnalysisRepository;
+import site.radio.report.retrieve.dto.DailyReportStatusResponse;
+import site.radio.report.retrieve.dto.WeeklyReportStatusResponse;
+import site.radio.report.util.CustomDateUtils;
+import site.radio.report.weekly.domain.WeeklyReport;
+import site.radio.report.weekly.repository.WeeklyReportRepository;
+import site.radio.user.domain.Preference;
+import site.radio.user.domain.Role;
+import site.radio.user.domain.User;
+import site.radio.user.repository.UserRepository;
 
 @Testcontainers
 @SpringBootTest
@@ -62,6 +66,9 @@ class ReportStatusRetrieveServiceTest {
 
     @Autowired
     private LetterRepository letterRepository;
+
+    @Autowired
+    private LetterAnalysisRepository letterAnalysisRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -93,7 +100,15 @@ class ReportStatusRetrieveServiceTest {
         // 2024-11-30: 일일 분석된 편지 1건
         Letter analyzedLetter = createLetterByLocalDate(user, LocalDate.of(2024, 11, 30));
         DailyReport dailyReport = createTestDailyReport(LocalDate.of(2024, 11, 30));
-        analyzedLetter.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis = LetterAnalysis.builder()
+                .letter(analyzedLetter)
+                .dailyReport(dailyReport)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis);
 
         // 2024-12-29: 2건
         createLetterByLocalDate(user, LocalDate.of(2024, 12, 29));
@@ -105,7 +120,7 @@ class ReportStatusRetrieveServiceTest {
 
     private void verifyFirstCase(User user) {
         LocalDate targetDate = LocalDate.of(2024, 11, 30);
-        List<DailyReportStatusResponseDto> dailyReportStatus = reportStatusRetrieveService.findDailyReportStatus(
+        List<DailyReportStatusResponse> dailyReportStatus = reportStatusRetrieveService.findDailyReportStatus(
                 user.getId(), targetDate, targetDate);
 
         List<LocalDate> totalDates = targetDate.minusMonths(1).datesUntil(targetDate.plusDays(1)).toList();
@@ -114,18 +129,18 @@ class ReportStatusRetrieveServiceTest {
                 "이미 분석을 실행한 2024-11-30 조회 시 2024-11-15 1건만 분석 가능하다.",
                 () -> assertThat(dailyReportStatus).hasSize(32),
                 () -> assertThat(dailyReportStatus)
-                        .extracting(DailyReportStatusResponseDto::getDate)
+                        .extracting(DailyReportStatusResponse::getDate)
                         .isEqualTo(totalDates),
                 () -> assertThat(dailyReportStatus)
                         .filteredOn(dto -> dto.getDate().isEqual(LocalDate.of(2024, 11, 15)))
-                        .extracting(DailyReportStatusResponseDto::isAvailable)
+                        .extracting(DailyReportStatusResponse::isAvailable)
                         .containsExactly(true)
         );
     }
 
     private void verifySecondCase(User user) {
         LocalDate targetDate = LocalDate.of(2024, 12, 29);
-        List<DailyReportStatusResponseDto> dailyReportStatus = reportStatusRetrieveService.findDailyReportStatus(
+        List<DailyReportStatusResponse> dailyReportStatus = reportStatusRetrieveService.findDailyReportStatus(
                 user.getId(), targetDate, targetDate);
 
         List<LocalDate> totalDates = targetDate.minusMonths(1).datesUntil(targetDate.plusDays(1)).toList();
@@ -133,18 +148,18 @@ class ReportStatusRetrieveServiceTest {
         assertAll(
                 "한 번도 분석하지 않은 2024-12-29 조회 시 2024-12-29 에 작성한 글 2건만 분석 가능하다.",
                 () -> assertThat(dailyReportStatus).hasSize(31),
-                () -> assertThat(dailyReportStatus).extracting(DailyReportStatusResponseDto::getDate)
+                () -> assertThat(dailyReportStatus).extracting(DailyReportStatusResponse::getDate)
                         .isEqualTo(totalDates),
                 () -> assertThat(dailyReportStatus)
                         .filteredOn(dto -> dto.getDate().isEqual(LocalDate.of(2024, 12, 29)))
-                        .extracting(DailyReportStatusResponseDto::isAvailable)
+                        .extracting(DailyReportStatusResponse::isAvailable)
                         .containsExactly(true)
         );
     }
 
     private void verifyThirdCase(User user) {
         LocalDate targetDate = LocalDate.of(2024, 12, 30);
-        List<DailyReportStatusResponseDto> dailyReportStatus = reportStatusRetrieveService.findDailyReportStatus(
+        List<DailyReportStatusResponse> dailyReportStatus = reportStatusRetrieveService.findDailyReportStatus(
                 user.getId(), targetDate, targetDate);
 
         List<LocalDate> totalDates = targetDate.minusMonths(1).datesUntil(targetDate.plusDays(1)).toList();
@@ -152,15 +167,15 @@ class ReportStatusRetrieveServiceTest {
         assertAll(
                 "한 번도 분석하지 않은 2024-12-30 조회 시 2024-12-29 작성 글 2건, 2024-12-30 작성 글 1건에 대해 분석 가능하다.",
                 () -> assertThat(dailyReportStatus).hasSize(31),
-                () -> assertThat(dailyReportStatus).extracting(DailyReportStatusResponseDto::getDate)
+                () -> assertThat(dailyReportStatus).extracting(DailyReportStatusResponse::getDate)
                         .isEqualTo(totalDates),
                 () -> assertThat(dailyReportStatus)
                         .filteredOn(dto -> dto.getDate().isEqual(LocalDate.of(2024, 12, 29)))
-                        .extracting(DailyReportStatusResponseDto::isAvailable)
+                        .extracting(DailyReportStatusResponse::isAvailable)
                         .containsExactly(true),
                 () -> assertThat(dailyReportStatus)
                         .filteredOn(dto -> dto.getDate().isEqual(LocalDate.of(2024, 12, 30)))
-                        .extracting(DailyReportStatusResponseDto::isAvailable)
+                        .extracting(DailyReportStatusResponse::isAvailable)
                         .containsExactly(true)
         );
     }
@@ -177,39 +192,39 @@ class ReportStatusRetrieveServiceTest {
         // when
         /* 이미 주간 분석을 실행한 2024-11-30 날짜에 조회 시 */
         LocalDate targetDate = LocalDate.of(2024, 11, 30);
-        List<WeeklyReportStatusResponseDto> weeklyReportStatus = reportStatusRetrieveService.findWeeklyReportStatus(
+        List<WeeklyReportStatusResponse> weeklyReportStatus = reportStatusRetrieveService.findWeeklyReportStatus(
                 user.getId(), targetDate, targetDate);
 
         /* 일일 분석과 주간 분석을 하지않은 2024-12-29 날짜일 때 조회 시  */
         LocalDate targetDate2 = LocalDate.of(2024, 12, 29);
-        List<WeeklyReportStatusResponseDto> weeklyReportStatus2 = reportStatusRetrieveService.findWeeklyReportStatus(
+        List<WeeklyReportStatusResponse> weeklyReportStatus2 = reportStatusRetrieveService.findWeeklyReportStatus(
                 user.getId(), targetDate2, targetDate2);
 
         /* 주간 분석을 하지않은 2024-12-30 날짜일 때 조회 시  */
         LocalDate targetDate3 = LocalDate.of(2024, 12, 30);
-        List<WeeklyReportStatusResponseDto> weeklyReportStatus3 = reportStatusRetrieveService.findWeeklyReportStatus(
+        List<WeeklyReportStatusResponse> weeklyReportStatus3 = reportStatusRetrieveService.findWeeklyReportStatus(
                 user.getId(), targetDate3, targetDate3);
 
         // then
         assertAll(
                 "2024-11-30일에 이미 주간 분석을 실행한 주에 조회 시 주간 분석이 가능한 주 개수는 0건이다.",
                 () -> assertThat(weeklyReportStatus).hasSize(5),
-                () -> assertThat(weeklyReportStatus).filteredOn(WeeklyReportStatusResponseDto::isAvailable)
-                        .extracting(WeeklyReportStatusResponseDto::getWeekName).isEmpty()
+                () -> assertThat(weeklyReportStatus).filteredOn(WeeklyReportStatusResponse::isAvailable)
+                        .extracting(WeeklyReportStatusResponse::getWeekName).isEmpty()
         );
 
         assertAll(
                 "2024-12-29일에 조회 시 주간 분석이 가능한 주 개수는 1건이다.",
                 () -> assertThat(weeklyReportStatus2).hasSize(5),
-                () -> assertThat(weeklyReportStatus2).filteredOn(WeeklyReportStatusResponseDto::isAvailable)
-                        .extracting(WeeklyReportStatusResponseDto::getWeekName).containsExactly("2024년 12월 4주차")
+                () -> assertThat(weeklyReportStatus2).filteredOn(WeeklyReportStatusResponse::isAvailable)
+                        .extracting(WeeklyReportStatusResponse::getWeekName).containsExactly("2024년 12월 4주차")
         );
 
         assertAll(
                 "2024-12-30일에 조회 시 주간 분석이 가능한 주 개수는 2건이다.",
                 () -> assertThat(weeklyReportStatus3).hasSize(6),
-                () -> assertThat(weeklyReportStatus3).filteredOn(WeeklyReportStatusResponseDto::isAvailable)
-                        .extracting(WeeklyReportStatusResponseDto::getWeekName)
+                () -> assertThat(weeklyReportStatus3).filteredOn(WeeklyReportStatusResponse::isAvailable)
+                        .extracting(WeeklyReportStatusResponse::getWeekName)
                         .contains("2024년 12월 4주차", "2025년 1월 1주차")
         );
     }
@@ -219,7 +234,15 @@ class ReportStatusRetrieveServiceTest {
         /* 2024-11-30: 편지 1건 (일일 분석 수행 o, 주간 분석 수행 o) */
         Letter analyzedLetter = createLetterByLocalDate(user, LocalDate.of(2024, 11, 30));
         DailyReport dailyReport = createTestDailyReport(LocalDate.of(2024, 11, 30));
-        analyzedLetter.setDailyReport(dailyReport);
+        LetterAnalysis letterAnalysis = LetterAnalysis.builder()
+                .letter(analyzedLetter)
+                .dailyReport(dailyReport)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis);
 
         WeeklyReport weeklyReport = WeeklyReport.builder()
                 .cheerUp("test")
@@ -237,7 +260,15 @@ class ReportStatusRetrieveServiceTest {
         /* 2024-12-30: 편지 1건 (일일 분석 수행 o, 주간 분석 수행 x) */
         Letter analyzedLetter3 = createLetterByLocalDate(user, LocalDate.of(2024, 12, 30));
         DailyReport dailyReport3 = createTestDailyReport(LocalDate.of(2024, 12, 29));
-        analyzedLetter3.setDailyReport(dailyReport3);
+        LetterAnalysis letterAnalysis3 = LetterAnalysis.builder()
+                .letter(analyzedLetter3)
+                .dailyReport(dailyReport3)
+                .topic("test")
+                .sensitiveEmotions(Collections.emptyList())
+                .coreEmotions(Collections.emptyList())
+                .build();
+
+        letterAnalysisRepository.save(letterAnalysis3);
     }
 
     private DailyReport createTestDailyReport(LocalDate targetDate) {
@@ -409,7 +440,7 @@ class ReportStatusRetrieveServiceTest {
         int weekOfYearByISO = targetDate.get(WeekFields.ISO.weekOfWeekBasedYear());
         int weekOfYearByKorea = targetDate.get(korea.weekOfWeekBasedYear());
 
-        String weekOfMonth = CustomDateUtils.getWeekOfMonth(targetDate);
+        String weekOfMonth = CustomDateUtils.getWeekOfMonth(targetDate, true);
 
         // then
         assertThat(weekOfYearByISO).isEqualTo(expectedWeekOfYear);

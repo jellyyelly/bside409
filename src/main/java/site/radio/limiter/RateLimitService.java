@@ -5,12 +5,16 @@ import static site.radio.limiter.RateLimitPolicy.TTL;
 
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RateLimitService {
@@ -23,7 +27,7 @@ public class RateLimitService {
     @Value("${redis.expire}")
     private long BASIC_EXPIRE_TIME;
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 유저의 요청이 제한 횟수를 초과하는지 유저 아이디로 조회하는 메서드.
@@ -31,7 +35,7 @@ public class RateLimitService {
      * @param userId {@link java.util.UUID} 의 String 타입
      * @return 제한 횟수 초과 여부
      */
-    public boolean isRequestAllowed(String userId) {
+    public boolean preDeductUsage(String userId) {
         String key = getKey(userId);
 
         // 요청 횟수 증가
@@ -47,7 +51,7 @@ public class RateLimitService {
         return requestCount <= getCurrentPolicy(LIMIT);
     }
 
-    public UserUsageResponseDto getUsageByUserId(String userId) {
+    public UserUsageResponse getUsageByUserId(String userId) {
         String key = getKey(userId);
 
         // 현재까지 사용량
@@ -56,14 +60,32 @@ public class RateLimitService {
         // 기본 초 단위 / ttl이 없거나 만료: -1 / 존재하지 않는 키: -2
         Long expire = redisTemplate.getExpire(key);
 
-        return UserUsageResponseDto.of(userId, usage, expire);
+        return UserUsageResponse.of(userId, usage, expire);
     }
 
-    public RateLimitPolicyResponseDto retrieveCurrentPolicy() {
+    public RateLimitPolicyResponse retrieveCurrentPolicy() {
         Long limit = getCurrentPolicy(LIMIT);
         Long ttl = getCurrentPolicy(TTL);
 
-        return RateLimitPolicyResponseDto.of(limit, ttl);
+        return RateLimitPolicyResponse.of(limit, ttl);
+    }
+
+    @Transactional
+    @EventListener
+    public void handleRollbackEvent(RateLimitRollbackEvent event) {
+        // event status => ROLLBACK_PROCESSING
+        event.process();
+
+        rollback(event.getUserId());
+
+        // event status => ROLLBACK_COMPLETE
+        event.complete();
+    }
+
+    public void rollback(String userId) {
+        String key = getKey(userId);
+        redisTemplate.opsForValue().decrement(key, 1);
+        log.info("사용 횟수가 롤백 되었습니다. userId: {}", userId);
     }
 
     private String getKey(String userId) {

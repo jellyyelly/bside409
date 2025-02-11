@@ -1,8 +1,5 @@
 package site.radio.report.retrieve.controller;
 
-import site.radio.report.retrieve.dto.DailyReportStatusResponseDto;
-import site.radio.report.retrieve.dto.WeeklyReportStatusResponseDto;
-import site.radio.report.retrieve.service.ReportStatusRetrieveService;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -14,6 +11,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import site.radio.report.retrieve.dto.DailyReportStatusResponse;
+import site.radio.report.retrieve.dto.WeeklyReportStatusResponse;
+import site.radio.report.retrieve.service.ReportStatusRetrieveService;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class ReportStatusRetrieveController {
 
     @GetMapping(value = "/api/v1/reports/daily/status/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public List<DailyReportStatusResponseDto> retrieveDailyReportStatus(
+    public List<DailyReportStatusResponse> retrieveDailyReportStatus(
             @PathVariable("userId") UUID userId, @RequestParam("yearMonth") YearMonth yearMonth
     ) {
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
@@ -32,7 +32,7 @@ public class ReportStatusRetrieveController {
 
     @GetMapping(value = "/api/v1/reports/weekly/status/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    public List<WeeklyReportStatusResponseDto> retrieveWeeklyReportStatus(
+    public List<WeeklyReportStatusResponse> retrieveWeeklyReportStatus(
             @PathVariable("userId") UUID userId, @RequestParam("yearMonth") YearMonth yearMonth
     ) {
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
