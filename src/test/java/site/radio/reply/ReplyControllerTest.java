@@ -6,8 +6,6 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import site.radio.letter.Letter;
-import site.radio.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +27,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import site.radio.reply.controller.ReplyController;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.domain.Reply;
+import site.radio.reply.dto.ReplyResponse;
+import site.radio.reply.service.ReplyService;
+import site.radio.user.domain.User;
 
 @ExtendWith(MockitoExtension.class)
 class ReplyControllerTest {
@@ -87,7 +91,7 @@ class ReplyControllerTest {
         given(mockLetter.isPublished()).willReturn(published); // published 조건에 따른 편지의 공개 여부 stub
         given(mockReply.getCreatedAt()).willReturn(LocalDateTime.of(year, 1, 1, 0, 0));
 
-        PageImpl<ReplyResponseDto> replies = new PageImpl<>(List.of(ReplyResponseDto.of(mockReply)), pageable, 1);
+        PageImpl<ReplyResponse> replies = new PageImpl<>(List.of(ReplyResponse.of(mockReply)), pageable, 1);
         given(replyService.findMyLetterAndReply(mockUser.getId(), year, published, pageable)).willReturn(replies);
 
         // when
@@ -101,7 +105,7 @@ class ReplyControllerTest {
         );
 
         // then
-        ReplyResponseDto firstContent = replies.getContent().get(0);
+        ReplyResponse firstContent = replies.getContent().get(0);
 
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$..[?(@.userId == '%s')]", firstContent.getUserId()).exists())
@@ -124,8 +128,8 @@ class ReplyControllerTest {
         given(mockReply.getCreatedAt()).willReturn(LocalDateTime.of(year, 1, 1, 0, 0));
         given(mockReply2.getCreatedAt()).willReturn(LocalDateTime.of(year, 1, 2, 0, 0));
 
-        List<ReplyResponseDto> contents = List.of(ReplyResponseDto.of(mockReply), ReplyResponseDto.of(mockReply2));
-        PageImpl<ReplyResponseDto> replies = new PageImpl<>(contents, pageable, 1);
+        List<ReplyResponse> contents = List.of(ReplyResponse.of(mockReply), ReplyResponse.of(mockReply2));
+        PageImpl<ReplyResponse> replies = new PageImpl<>(contents, pageable, 1);
         given(replyService.findMyLetterAndReply(mockUser.getId(), year, null, pageable)).willReturn(replies);
 
         // when
@@ -138,8 +142,8 @@ class ReplyControllerTest {
         );
 
         // then
-        ReplyResponseDto firstContent = replies.getContent().get(0);
-        ReplyResponseDto secondContent = replies.getContent().get(1);
+        ReplyResponse firstContent = replies.getContent().get(0);
+        ReplyResponse secondContent = replies.getContent().get(1);
 
         resultActions.andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].userId").value(firstContent.getUserId().toString()))

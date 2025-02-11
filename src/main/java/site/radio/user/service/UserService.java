@@ -1,21 +1,21 @@
 package site.radio.user.service;
 
-import site.radio.error.UserNotFoundException;
-import site.radio.user.dto.KakaoUnlinkRequestDto;
-import site.radio.user.dto.UserChangeRequestDto;
-import site.radio.user.dto.UserDeleteRequestDto;
-import site.radio.user.dto.UserDeleteResponseDto;
-import site.radio.user.dto.UserResponseDto;
-import site.radio.user.domain.WithdrawalUser;
-import site.radio.user.domain.User;
-import site.radio.user.repository.UserRepository;
-import site.radio.user.repository.WithdrawalRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.radio.error.UserNotFoundException;
+import site.radio.user.domain.User;
+import site.radio.user.domain.WithdrawalUser;
+import site.radio.user.dto.KakaoUnlinkRequest;
+import site.radio.user.dto.UserChangeRequest;
+import site.radio.user.dto.UserDeleteRequest;
+import site.radio.user.dto.UserDeleteResponse;
+import site.radio.user.dto.UserResponse;
+import site.radio.user.repository.UserRepository;
+import site.radio.user.repository.WithdrawalRepository;
 
 @Slf4j
 @Service
@@ -30,7 +30,7 @@ public class UserService {
     @Value("${security.kakao-admin-key}")
     private String kakaoAdminKey;
 
-    public UserResponseDto changeUserInfo(UUID userId, UserChangeRequestDto changeDto) {
+    public UserResponse changeUserInfo(UUID userId, UserChangeRequest changeDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
@@ -41,18 +41,18 @@ public class UserService {
         user.changeAgreeToTerms(changeDto.isAgreeToTerms());
         user.changeAgreeToPrivacyPolicy(changeDto.isAgreeToPrivacyPolicy());
 
-        return UserResponseDto.of(user);
+        return UserResponse.of(user);
     }
 
     @Transactional(readOnly = true)
-    public UserResponseDto getUser(UUID userId) {
+    public UserResponse getUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        return UserResponseDto.of(user);
+        return UserResponse.of(user);
     }
 
-    public UserDeleteResponseDto deleteUser(UUID userId, UserDeleteRequestDto deleteRequestDto) {
+    public UserDeleteResponse deleteUser(UUID userId, UserDeleteRequest deleteRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
@@ -60,11 +60,11 @@ public class UserService {
         user.changeToDormantAccount();
         WithdrawalUser withdrawalUser = WithdrawalUser.toWithdrawalUser(user, deleteRequestDto);
         withdrawalRepository.save(withdrawalUser);
-        KakaoUnlinkRequestDto dto = KakaoUnlinkRequestDto.of(user);
+        KakaoUnlinkRequest dto = KakaoUnlinkRequest.of(user);
 
         /* kakao oauth2 서버에 unlink 요청 전송 */
         client.requestUnlinkByUser(kakaoAdminKey, dto.getTargetIdType(), dto.getTargetId());
 
-        return UserDeleteResponseDto.of(user);
+        return UserDeleteResponse.of(user);
     }
 }

@@ -2,10 +2,6 @@ package site.radio.reply;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import site.radio.letter.Letter;
-import site.radio.letter.LetterRepository;
-import site.radio.user.domain.User;
-import site.radio.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import site.radio.reply.domain.Letter;
+import site.radio.reply.domain.Reply;
+import site.radio.reply.repository.LetterRepository;
+import site.radio.reply.repository.ReplyRepository;
+import site.radio.user.domain.User;
+import site.radio.user.repository.UserRepository;
 
 @DataJpaTest
 @ActiveProfiles("test")

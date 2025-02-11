@@ -51,7 +51,7 @@ public class RateLimitService {
         return requestCount <= getCurrentPolicy(LIMIT);
     }
 
-    public UserUsageResponseDto getUsageByUserId(String userId) {
+    public UserUsageResponse getUsageByUserId(String userId) {
         String key = getKey(userId);
 
         // 현재까지 사용량
@@ -60,14 +60,14 @@ public class RateLimitService {
         // 기본 초 단위 / ttl이 없거나 만료: -1 / 존재하지 않는 키: -2
         Long expire = redisTemplate.getExpire(key);
 
-        return UserUsageResponseDto.of(userId, usage, expire);
+        return UserUsageResponse.of(userId, usage, expire);
     }
 
-    public RateLimitPolicyResponseDto retrieveCurrentPolicy() {
+    public RateLimitPolicyResponse retrieveCurrentPolicy() {
         Long limit = getCurrentPolicy(LIMIT);
         Long ttl = getCurrentPolicy(TTL);
 
-        return RateLimitPolicyResponseDto.of(limit, ttl);
+        return RateLimitPolicyResponse.of(limit, ttl);
     }
 
     @Transactional
