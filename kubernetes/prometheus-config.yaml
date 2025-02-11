@@ -17,10 +17,11 @@ data:
         metrics_path: "/actuator/prometheus"
         scrape_interval: 1m
         kubernetes_sd_configs:
-          - role: endpoints
+          - role: service
         relabel_configs:
           - source_labels: [ __meta_kubernetes_service_name ]
             action: keep
             regex: api-svc
-          - source_labels: [ __meta_kubernetes_pod_ip ]
-            target_label: instance
+          - source_labels: [ __meta_kubernetes_service_port_name ]
+            action: keep
+            regex: actuator  # 9292 포트가 "actuator"라는 이름인지 확인
