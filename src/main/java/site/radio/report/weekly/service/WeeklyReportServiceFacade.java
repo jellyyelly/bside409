@@ -3,6 +3,7 @@ package site.radio.report.weekly.service;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import site.radio.report.daily.service.DailyReportService;
 import site.radio.report.daily.service.LetterAnalysisService;
@@ -18,6 +19,8 @@ public class WeeklyReportServiceFacade {
     private final DailyReportService dailyReportService;
     private final WeeklyReportService weeklyReportService;
 
+    @CacheEvict(value = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
+            key = "#userId.toString() + #startDate.withDayOfMonth(startDate.lengthOfMonth()).toString()")
     public WeeklyReportResponse createWeeklyReport(UUID userId, LocalDate startDate) {
         LocalDate endDate = startDate.plusDays(6);
 

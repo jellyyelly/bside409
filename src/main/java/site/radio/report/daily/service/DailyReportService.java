@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.radio.common.aop.transaction.NamedLock;
@@ -41,6 +43,8 @@ public class DailyReportService {
      * @param targetDate 리포트 생성 대상 날짜
      * @return 생성된 일일 리포트에 대한 응답 DTO
      */
+    @CacheEvict(value = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
+            key = "#userId.toString() + #targetDate.withDayOfMonth(targetDate.lengthOfMonth()).toString()")
     @NamedLock(lockName = "createdDailyReport", timeout = 0, keyFields = {"userId"})
     public DailyReportResponse createDailyReport(UUID userId, LocalDate targetDate) {
         if (dailyReportRepository.existsByUserAndTargetDate(userId, targetDate)) {
@@ -62,6 +66,8 @@ public class DailyReportService {
                 .orElseThrow(() -> new DailyReportNotFoundException("데일리 리포트를 찾지 못했습니다. 날짜: " + targetDate));
     }
 
+    @Cacheable(value = "dailyReport", cacheManager = "caffeineCacheManager",
+            key = "#userId.toString() + #targetDate.toString()")
     @Transactional(readOnly = true)
     public DailyReportResponse getDailyReport(UUID userId, LocalDate targetDate) {
         List<LetterAnalysis> letterAnalyses = letterAnalysisRepository.findLetterAnalysesByTargetDateAt(userId,

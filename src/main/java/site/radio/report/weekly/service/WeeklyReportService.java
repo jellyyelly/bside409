@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.radio.clova.dto.CreateResponse;
@@ -80,6 +81,8 @@ public class WeeklyReportService {
         }
     }
 
+    @Cacheable(value = "weeklyReport", cacheManager = "caffeineCacheManager",
+            key = "#userId.toString() + #endDate.toString()")
     @Transactional(readOnly = true)
     public WeeklyReportResponse getWeeklyReport(UUID userId, LocalDate startDate, LocalDate endDate) {
         WeeklyReportProjection projection = weeklyReportRepository.findWeeklyReportDtoBy(userId, startDate,
