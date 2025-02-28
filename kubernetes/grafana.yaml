@@ -40,22 +40,22 @@ spec:
         - name: grafana-data
           persistentVolumeClaim:
             claimName: grafana-pvc
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: grafana-pv
-  labels:
-    app: grafana-pv
-spec:
-  storageClassName: standard
-  capacity:
-    storage: 2Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /data/grafana-data
-    type: DirectoryOrCreate
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: grafana-pv
+#  labels:
+#    app: grafana-pv
+#spec:
+#  storageClassName: standard
+#  capacity:
+#    storage: 2Gi
+#  accessModes:
+#    - ReadWriteOnce
+#  hostPath:
+#    path: /data/grafana-data
+#    type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -63,7 +63,7 @@ metadata:
   name: grafana-pvc
 spec:
   volumeName: grafana-pv
-  storageClassName: standard
+  storageClassName: standard-rwo
   accessModes:
     - ReadWriteOnce
   resources:
