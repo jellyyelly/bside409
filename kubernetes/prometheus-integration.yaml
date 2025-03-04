@@ -52,31 +52,30 @@ spec:
         - name: prometheus-data
           persistentVolumeClaim:
             claimName: prometheus-pvc
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: prometheus-pv
-  labels:
-    app: prometheus-pv
-spec:
-  capacity:
-    storage: 2Gi
-  volumeMode: Filesystem
-  storageClassName: standard
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /data/prometheus-data
-    type: DirectoryOrCreate
+#---
+#apiVersion: v1
+#kind: PersistentVolume
+#metadata:
+#  name: prometheus-pv
+#  labels:
+#    app: prometheus-pv
+#spec:
+#  capacity:
+#    storage: 2Gi
+#  volumeMode: Filesystem
+#  storageClassName: standard
+#  accessModes:
+#    - ReadWriteOnce
+#  hostPath:
+#    path: /data/prometheus-data
+#    type: DirectoryOrCreate
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-pvc
 spec:
-  volumeName: prometheus-pv
-  storageClassName: standard
+  storageClassName: standard-rwo
   accessModes:
     - ReadWriteOnce
   resources:
