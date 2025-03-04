@@ -3,10 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
 spec:
-  volumeName: mysql-pv
-  storageClassName: standard
+  storageClassName: standard-rwo
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Gi
+      storage: 50Gi

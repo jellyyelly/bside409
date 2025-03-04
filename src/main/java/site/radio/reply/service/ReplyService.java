@@ -47,10 +47,8 @@ public class ReplyService {
         return TwoTypeMessageExtractor.extract(clovaResponse.getResultMessage());
     }
 
-    @CacheEvict(
-            cacheNames = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
-            key = "#replyRequest.userId.toString()"
-    )
+    @CacheEvict(value = {"dailyReportStatus", "weeklyReportStatus"}, cacheManager = "caffeineCacheManager",
+            key = "#p0.userId + #p0.targetDate.withDayOfMonth(#p0.targetDate.lengthOfMonth()).toString()")
     public ReplyResponse save(ReplyRequest replyRequest, TwoTypeMessage twoTypeMessage) {
         // 트랜잭션 안에서 Letter 저장
         Letter letter = letterService.save(
